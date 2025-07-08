@@ -1,0 +1,10 @@
+{
+  "name": "SimpleHealthBar",
+  "version_number": "1.0.0",
+  "website_url": "",
+  "description": "Gives you a health bar above your inventory.",
+  "dependencies": [
+    "LavaGang-MelonLoader-0.7.0",
+    "the_croods-SwapperPlugin-1.2.1"
+  ]
+}
