@@ -1,4 +1,4 @@
-# Simple Health Bar - V1.1
+# Simple Health Bar - V1.2.5
 
 ---
 
@@ -23,8 +23,6 @@ A lightweight mod that adds a clean, easy-to-read health bar above your inventor
   Bar display duration, time, and speed via a simple config file. More coming in a future update.
 
 - **Future Enhancements (WIP)**  
-  ~~NPC health bars~~  
-  ~~Animated health transitions~~  
   - Multiplayer health bars  
   - Customizable thresholds and warnings  
   - User-suggested features – drop your ideas in the discussion!
@@ -88,12 +86,6 @@ After editing, save the file and restart Schedule I for changes to take effect.
 2. Download the latest **SimpleHealthBar-Il2Cpp.dll** from the releases page.  
 3. Copy `SimpleHealthBar-Il2Cpp.dll` into your Schedule I’s `Mods/` folder.  
 4. Launch Schedule I and enjoy instant health feedback!
-
----
-
-## Known Bugs
-
-Currently the player’s health bar does not show up if you return to the menu and reload a save. Fix in progress!
 
 ---
 
