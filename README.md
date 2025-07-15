@@ -1,141 +1,102 @@
-# Schedule I MelonLoader Mod Template
+# Simple Health Bar - V1.1
 
-This is a template for creating a MelonLoader mod for the game "Schedule I". It includes a basic structure and example code to help you get started.
+---
 
-## Features
-- Basic mod structure
-- Useful methods for cross-backend compatibility
-- Thunderstore and NexusMods packaging script
-- Cross-backend compatibility: IL2CPP (none/beta branch) and Mono (alternate/alternate-beta branch)
-- Easy build and test process: Select the target configuration, build the mod and the game will be launched automatically (e.g. Debug IL2CPP will build the mod and launch the IL2CPP version of the game with debug options)
-- Automatic testing mod loading: Comment/uncomment lines in .csproj to enable/disable automatic loading of often used mods like UnityExplorer, LocalMultiplayer
+A lightweight mod that adds a clean, easy-to-read health bar above your inventory in **Schedule I**. Keep track of your player’s health at a glance. No more guessing and checking! Now also includes a health bar for the NPC nearest you!
 
-## Usage
-### Prerequisites
-- [MelonLoader](https://melonwiki.xyz/) and basic knowledge of [how to use it](https://melonwiki.xyz/#/modders/quickstart)
-- .NET SDK (as per MelonLoader requirements)
-- C# IDE (e.g. Rider)
-- [Schedule I](https://store.steampowered.com/app/3164500) ownership
+![Health Bar Preview](https://i.imgur.com/fUTUDkO.jpeg)
 
-#### Preparing the directory structure
-I recommend following structure:
-```
-S1-modding
-├── common
-│   ├── LocalMultiplayer
-│   └── UnityExplorer
-├── gamefiles
-│   ├── Schedule I IL2CPP
-│   └── Schedule I Mono
-```
+---
 
-`LocalMultiplayer` directory should contain the mod file `.dll` and `.bat` starter.
-Example starter:
-```bat
-start "" "Schedule I.exe" --host --adjust-window --left-offset 0
-timeout /t 1
-start "" "Schedule I.exe" --join --adjust-window --left-offset 20
-```
+## Key Features
 
-`UnityExplorer` directory should contain `.dll` files for IL2CPP and Mono versions of the mod.
+- **On-Screen Health Display**  
+  A subtle health bar appears just above your inventory UI, showing current and maximum health in real time.
 
-`gamefiles` directory should contain the game files for IL2CPP and Mono versions of the game. You can use the `Schedule I IL2CPP` and `Schedule I Mono` directories to store the game files for each version.
+- **Auto-Hide & Persistent Modes**  
+  Choose to have the bar fade out after a few seconds of full health, or keep it visible at all times.
 
-### Usage
-#### Installation
-To install this template, use:
-```
-dotnet new install k073l.S1MelonMod
+- **NPC Health Display**  
+  Now the NPC nearest to you will have their health displayed at the top of your screen. Keep it around all the time, or have it disappear after a few seconds. It’s all configurable!
+
+- **Easy Configuration**  
+  Bar display duration, time, and speed via a simple config file. More coming in a future update.
+
+- **Future Enhancements (WIP)**  
+  ~~NPC health bars~~  
+  ~~Animated health transitions~~  
+  - Multiplayer health bars  
+  - Customizable thresholds and warnings  
+  - User-suggested features – drop your ideas in the discussion!
+
+---
+
+## In-Game Configuration
+
+### Mod Manager – Phone App Integration
+
+If you install the [Mod Manager – Phone App (Nexus #397)](https://www.nexusmods.com/schedule1/mods/397), you can browse and tweak all settings directly through your phone’s **Settings** app.
+
+### Manual CFG Config
+
+Settings are stored in your MelonLoader preferences file. To customize without the phone app, open:
+
+```text
+<GameFolder>/Schedule I/UserData/MelonPreferences.cfg
 ```
 
-#### Creating a new mod
-To create a new mod you can use the new solution wizard:
-![solution wizard in Rider](https://raw.githubusercontent.com/k073l/S1MelonModTemplate/master/assets-meta/wizard.png)
-Alternatively, you can create a new project using the command line:
-```
-dotnet new S1MelonMod -n MyNewMod \
-  --S1MonoDir "" \
-  --S1IL2CPPDir ""
-```
-#### Parameters
-| Name                  | Required | Description                                                                                          |
-| --------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
-| S1MonoDir             | Yes      | Path to the Mono version of the game.                                                                |
-| S1IL2CPPDir           | Yes      | Path to the IL2CPP version of the game.                                                              |
-| CommonDir             | No       | Path to the common directory. (helper path, mostly useful as a variable)                             |
-| UnityExplorerMono     | No       | Path to the Mono version of the [UnityExplorer](https://github.com/yukieiji/UnityExplorer) mod.      |
-| UnityExplorerIL2CPP   | No       | Path to the IL2CPP version of the [UnityExplorer](https://github.com/yukieiji/UnityExplorer) mod.    |
-| MultiplayerModMono    | No       | Path to the Mono version of the [LocalMultiplayer](https://github.com/k073l/LocalMultiplayer) mod.   |
-| MultiplayerModIL2CPP  | No       | Path to the IL2CPP version of the [LocalMultiplayer](https://github.com/k073l/LocalMultiplayer) mod. |
-| MultiplayerModStarter | No       | Path to the [LocalMultiplayer](https://github.com/k073l/LocalMultiplayer) mod starter bat file.      |
+Locate (or add) the following sections and adjust these values:
 
+```ini
+[SimpleHealthBar_HealthBar]
+# Fades the health bar after a few seconds
+FadeOutBar = true
+# Fades out the text display showing your health
+FadeOutHealthText = true
+# Shows the health bar when you take damage
+ShowOnDamage = true
+# Configures the font size of the text label HUD element
+FontSize = 12.0
 
-You can use parameters to set the paths of other params. For example, you can set the `CommonDir` parameter to the path of the common directory, and then use it to set the paths of the `UnityExplorerMono`, `UnityExplorerIL2CPP`, `MultiplayerModMono`, and `MultiplayerModIL2CPP` parameters. This way, you can keep your configurations readable.
+[SimpleHealthBar_Animation]
+# The amount of time in seconds it takes for the bar and text to disappear
+FadeDelay = 10.0
+# Manages the speed of the fade transition
+FadeSpeed = 5.0
 
-#### Packaging
-This template includes Thunderstore and NexusMods packaging script. Once both IL2CPP and Mono builds were built and tested, you can fill out `assets/manifest.json` and drop in your `icon.png`. Then simply run `assets/package-mod.ps1`. You should see 3 zip files in assets directory. Thunderstore package `*-TS.zip` will contain `manifest.json`, `icon.png`, `README.md`, `CHANGELOG.md` and both `.dll` files for IL2CPP and Mono versions of your mod. NexusMods zips are `*-IL2CPP.zip` and `*-Mono.zip`. They contain only the mod files.
+[SimpleHealthBar_NPCHealthBar]
+# Enables the health bar for the nearest NPC
+NPCBarEnabled = true
+# Enables fading out the health bar for the nearest NPC
+FadeOutNPCBar = false
+```
 
-##### README.md conversion to NexusMods description
-In `assets/` you can find `README.md` to `NexusMods` description conversion script. It will convert the `README.md` file to a format that is compatible with NexusMods description. You can run it using:
-`.\assets\convert-readme.ps1`.
-This will create a new file `README-nexus.txt` in root of the project. Then, you can copy the content of this file, switch description editor mode to `BBCode`
-![bbcode option in description editor](https://raw.githubusercontent.com/k073l/S1MelonModTemplate/master/assets-meta/bbcode.png)
-and paste it there. You can switch back to normal mode after pasting using the same `BBCode` button and verify that everything looks good.
+After editing, save the file and restart Schedule I for changes to take effect.
 
-**Disclaimer:** `convert-readme.ps1` uses [uv](https://docs.astral.sh/uv) to run the Python script responsible for conversion (Python script is embedded in Powershell). As such, this script will contact uv servers to download the tool, drop files (uv.exe, Python script, temp environment). All data will be cleaned up, but since it's contacting the internet you should verify the contents of the script before running it, to make sure for yourself it's not malicious. [Script behavior analysis on VirusTotal.](https://www.virustotal.com/gui/file/018ef20da353604ac0ad5d12ba321fb1fb5bff83e07cd0e40c13dc2b3bdb15cf/behavior)
+---
 
-### Additional information
-Information on S1 modding can be found in the [S1 modding discord](https://discord.gg/9Z5RKEYSzq).
+## Requirements
 
-## Bundled methods
-#### MelonLogger Extension
-`Debug` method allows you to log messages only when mod is built in Debug configuration. Additionally, it automatically logs caller info.
-```csharp
-private static MelonLogger.Instance _logger = new MelonLogger.Instance("SimpleHealthBar"); // logger instance needs to be created
-_logger.Debug("This message will be logged only in Debug configuration");
-```
-#### Il2CppList Extension
-`ToIl2CppList<T>` makes converting `List<T>` to `Il2CppList<T>` easier.
-```csharp
-List<int> list = new List<int> { 1, 2, 3 };
-Il2CppSystem.Collections.Generic.List<int> il2cppList = list.ToIl2CppList();
-```
-`ConvertToList<T>` naturally, converts `Il2CppList<T>` to `List<T>`.
-```csharp
-Il2CppSystem.Collections.Generic.List<int> il2cppList = new Il2CppSystem.Collections.Generic.List<int> { 1, 2, 3 };
-List<int> list = il2cppList.ConvertToList();
-```
-`AsEnumerable<T>` allows you to use LINQ on both Il2Cpp Lists and System Lists.
-```csharp
-var deliveryVehicle = VehicleManager.Instance.AllVehicles.AsEnumerable().FirstOrDefault(); // works both in il2cpp and mono
-// without AsEnumerable we'd need to
-#if MONO
-var deliveryVehicle = VehicleManager.Instance.AllVehicles.FirstOrDefault();
-#else
-var deliveryVehicle = VehicleManager.Instance.AllVehicles._items[0];
-#endif
-```
-#### Utils
-`FindObjectByName<T>` finds loaded object by name.
-```csharp
-var sprite = Utils.FindObjectByName<Sprite>("MySprite");
-```
-`GetAllComponentsInChildrenRecursive<T>` gets all components of type `T` in children of the object.
-```csharp
-var components = Utils.GetAllComponentsInChildrenRecursive<MyComponent>(myGameObject);
-```
-`Is<T>` checks and casts object to type `T`.
-```csharp
-if (Is<MyComponent>(someObj, out var res))
-{
-    // res is MyComponent
-}
-```
-`GetAllStorableItemDefinitions` returns all storable item definitions from the registry.
-```csharp
-var allStorableItemDefinitions = Utils.GetAllStorableItemDefinitions();
-var item = allStorableItemDefinitions.FirstOrDefault(x => x.ID == "cuke");
-```
-##### Routines
-There are several methods that can be used in `MelonCoroutines.Start(coroutine)`: `WaitForPlayer, WaitForNetwork, WaitForNotNull, WaitForNetworkSingleton`.
-Every method is documented using XML docs.
+- Main (or beta) branch of Schedule I  
+- **[MelonLoader](https://melonwiki.xyz/)**
+
+---
+
+## Installation
+
+1. Ensure **MelonLoader** is installed and working for Schedule I.  
+2. Download the latest **SimpleHealthBar-Il2Cpp.dll** from the releases page.  
+3. Copy `SimpleHealthBar-Il2Cpp.dll` into your Schedule I’s `Mods/` folder.  
+4. Launch Schedule I and enjoy instant health feedback!
+
+---
+
+## Known Bugs
+
+Currently the player’s health bar does not show up if you return to the menu and reload a save. Fix in progress!
+
+---
+
+Got feedback or feature requests? Feel free to open an issue or join the discussion; this mod is a work in progress, and your ideas help shape future updates!
+
+![Join the Discussion](https://i.imgur.com/hR0Gugk.jpeg)
