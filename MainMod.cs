@@ -5,9 +5,16 @@ using UnityEngine;
 using Il2CppScheduleOne.UI.Phone;
 using Il2CppScheduleOne.DevUtilities;
 using Il2CppScheduleOne.PlayerScripts;
-using Il2CppSystem.Xml;
-using static MelonLoader.MelonLaunchOptions;
 using Il2CppScheduleOne.UI;
+using SimpleHealthBar.NPCUtils;
+using SimpleHealthBar.Player;
+
+
+
+
+
+
+
 
 
 
@@ -36,7 +43,7 @@ public static class BuildInfo
     public const string Name = "SimpleHealthBar";
     public const string Description = "Gives you a health bar above your inventory.";
     public const string Author = "iTidez";
-    public const string Version = "1.0.0";
+    public const string Version = "1.1.1";
 }
 
 public class SimpleHealthBar : MelonMod
@@ -55,59 +62,20 @@ public class SimpleHealthBar : MelonMod
         if (sceneName == "Main")
         {
             MelonCoroutines.Start(Init());
-            //    Logger.Debug("Main scene loaded, waiting for player");
-            //    MelonCoroutines.Start(Utils.WaitForPlayer(DoStuff()));
-
-            //    Logger.Debug("Main scene loaded, waiting for network");
-            //    MelonCoroutines.Start(Utils.WaitForNetwork(DoNetworkStuff()));
-            this.atMain = true;
         }
-        else
-            this.atMain = false;
-    }
-
-    public override void OnUpdate()
-    {
-        if (atMain)
+        else if (sceneName == "Menu")
         {
-            if (this.initialized)
-            {
-                Player player = Player.Local;
-                bool healthBarExists = this.healthBar != null || player != null;
-                Phone phone = PlayerSingleton<Phone>.Instance;
-                bool phoneOpen = phone != null && phone.IsOpen;
-                if (healthBarExists)
-                {
-                    float health = player.Health.CurrentHealth;
-                    bool update = health != this.lastHealth;
-                    if (update)
-                    {
-                        this.lastHealth = health;
-                        this.healthBar.UpdateHealth(health);
-                        bool showOnDamage = Preferences.ShowOnDamage.Value || phoneOpen;
-                        if (showOnDamage)
-                            this.healthBar.Show();
-                    }
-                }
-                this.healthBar.Update(phoneOpen);
-                this._lastPhoneOpen = phoneOpen;
-            }
+            PlayerHealthBarManager.Unload();
+            NPCHealthManager.Unload();
         }
     }
+
 
     private IEnumerator Init()
     {
-        Logger.Debug("Initializing health bar");
-        this.healthBar = new HealthBarHandler();
-        this.healthBar.Init(HUD.Instance.transform, Logger);
         yield return new WaitForSeconds(2f);
-        this.initialized = true;
+        PlayerHealthBarManager.Init(Logger);
+        NPCHealthManager.Init(Logger);
         Logger.Msg("Heathbar Initialized!");
     }
-
-    private HealthBarHandler healthBar;
-    private float lastHealth = -1f;
-    private bool _lastPhoneOpen;
-    private bool atMain = true;
-    private bool initialized = false;
 }

@@ -246,7 +246,7 @@ public static class Utils
     /// <returns>An enumerator that waits for the player to be ready.</returns>
     public static IEnumerator WaitForPlayer(IEnumerator routine)
     {
-        while (Player.Local == null || Player.Local.gameObject == null)
+        while (Il2CppScheduleOne.PlayerScripts.Player.Local == null || Il2CppScheduleOne.PlayerScripts.Player.Local.gameObject == null)
             yield return null;
 
         // player is ready, start the coroutine

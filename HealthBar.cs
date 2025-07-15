@@ -1,24 +1,40 @@
-﻿using Il2CppTMPro;
+﻿using Il2CppScheduleOne.UI;
+using Il2CppTMPro;
 using MelonLoader;
-using SimpleHealthBar.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using SimpleHealthBar.Core;
+using SimpleHealthBar.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace SimpleHealthBar
 {
-    class HealthBarHandler
+    class HealthBar
     {
         private static MelonLogger.Instance Logger;
-        public void Init(Transform hudCanvas, MelonLogger.Instance li)
+        private static bool HasInitialized = false;
+        //public HealthBarHandler(HealthBarBuilder builder,
+        //                        HealthBarAnimator animator,
+        //                        HealthBarModel model,
+        //                        MelonLogger.Instance logger)
+        //{
+        //    _builder = builder;
+        //    _animator = animator;
+        //    _model = model;
+        //    _logger = logger;
+        //}
+
+        //public void Init(Transform hudCanvas)
+        //{
+        //    var comp = _builder.Build(hudCanvas);
+        //    _animator.Fill
+        //    _logger.Msg("Healthbar initialized")
+        //}
+
+        public void Init()
         {
-            Logger = li;
-            // Create a Game Object called a Health Bar
+            var hudCanvas = HUD.Instance.transform;
+            Logger = new MelonLogger.Instance(BuildInfo.Name);
+            //Create a Game Object called a Health Bar
             this._barGO = new GameObject("HealthBar");
             this._barGO.transform.SetParent(hudCanvas, false);
             this._barGO.AddComponent<RectTransform>();
@@ -74,6 +90,9 @@ namespace SimpleHealthBar
             this._healthText.alignment = TextAlignmentOptions.Left;
             this._healthText.fontSize = FontSize;
             this.ApplyTextShadow(this._healthText);
+            //this._builder = new HealthBarBuilder();
+            //_builder.Build(hudCanvas);
+            HasInitialized = true;
         }
 
         public void Release()
@@ -83,6 +102,8 @@ namespace SimpleHealthBar
 
         public void Update(bool phoneOpen)
         {
+            if (!HasInitialized)
+                return;
             if (phoneOpen)
             {
                 if (!this._lastPhoneOpen)
@@ -107,7 +128,7 @@ namespace SimpleHealthBar
             else
             {
                 bool lastPhoneOpen = this._lastPhoneOpen;
-                if(lastPhoneOpen)
+                if (lastPhoneOpen)
                 {
                     this._pauseAccumulated += Time.time - this._pauseStartTime;
                     this._lastPhoneOpen = false;
@@ -132,7 +153,7 @@ namespace SimpleHealthBar
 
 
                 bool fillImage = this._fillImage != null;
-                if (fillImage)
+                if (fillImage && Preferences.FadeOutBar.Value)
                 {
                     Color color = this._fillImage.color;
                     color.a = Mathf.Lerp(color.a, b, Time.deltaTime * Preferences.FadeSpeed.Value);
@@ -147,18 +168,22 @@ namespace SimpleHealthBar
 
         public void UpdateHealth(float currentHealth)
         {
+            if (!HasInitialized)
+                return;
             this._currentFill = currentHealth;
-            DefaultInterpolatedStringHandler stringHandler = new DefaultInterpolatedStringHandler(6, 2);
-            stringHandler.AppendFormatted<float>(currentHealth);
-            stringHandler.AppendLiteral(" / ");
-            stringHandler.AppendFormatted<float>(100f);
-            stringHandler.AppendLiteral(" HP");
+            //DefaultInterpolatedStringHandler stringHandler = new DefaultInterpolatedStringHandler(6, 2);
+            //stringHandler.AppendFormatted<float>(currentHealth);
+            //stringHandler.AppendLiteral(" / ");
+            //stringHandler.AppendFormatted<float>(100f);
+            //stringHandler.AppendLiteral(" HP");
 
-            string healthText = stringHandler.ToStringAndClear();
+            //string healthText = stringHandler.ToStringAndClear();
+            var healthText = $"{Mathf.FloorToInt(currentHealth)} / 100 HP";
             if (this._healthText.text != healthText)
             {
                 this._healthText.text = healthText;
                 bool showOnDamage = Preferences.ShowOnDamage.Value;
+
                 if (showOnDamage)
                 {
                     this._lastHealthUpdateTime = Time.time;
@@ -169,6 +194,8 @@ namespace SimpleHealthBar
 
         public void Show()
         {
+            if (!HasInitialized)
+                return;
             this._lastHealthUpdateTime = Time.time;
             this._pauseAccumulated = 0f;
             bool barFill = this._fillImage != null;
@@ -218,5 +245,88 @@ namespace SimpleHealthBar
         private bool _lastPhoneOpen = false;
         private float _pauseStartTime = 0f;
         private float _pauseAccumulated = 0f;
+
+        readonly HealthBarAnimator _animator;
+        private HealthBarBuilder _builder;
+        readonly HealthBarModel _model;
+        readonly MelonLogger.Instance _logger;
     }
 }
+//using MelonLoader;
+//using UnityEngine;
+//using SimpleHealthBar.Core;
+//using SimpleHealthBar.UI;
+
+//namespace SimpleHealthBar
+//{
+//    /// <summary>
+//    /// Coordinates UI construction, state tracking, and animation for the health bar.
+//    /// </summary>
+//    public class HealthBarHandler
+//    {
+//        private readonly HealthBarBuilder _builder;
+//        private readonly MelonLogger.Instance _logger;
+
+//        private HealthBarComponents _components;
+//        private HealthBarModel _model;
+//        private HealthBarAnimator _animator;
+
+//        /// <summary>
+//        /// Initializes a new instance of the <see cref="HealthBarHandler"/> class.
+//        /// </summary>
+//        /// <param name="builder">The UI builder for constructing the health bar elements.</param>
+//        /// <param name="logger">The MelonLoader logger instance for debug output.</param>
+//        public HealthBarHandler(HealthBarBuilder builder, MelonLogger.Instance logger)
+//        {
+//            _builder = builder;
+//            _logger = logger;
+//        }
+
+//        /// <summary>
+//        /// Initializes the health bar by building the UI, setting initial state, and configuring the animator.
+//        /// </summary>
+//        /// <param name="hudCanvas">Parent canvas transform under which the bar will be placed.</param>
+//        /// <param name="initialHealth">The player's starting health.</param>
+//        /// <param name="initialMaxHealth">The player's starting maximum health.</param>
+//        public void Init(Transform hudCanvas, float initialHealth, float initialMaxHealth)
+//        {
+//            _components = _builder.Build(hudCanvas);
+//            _model = new HealthBarModel(initialHealth, initialMaxHealth);
+//            _animator = new HealthBarAnimator(
+//                _components.FillImage,
+//                _components.CanvasGroup,
+//                Preferences.FadeSpeed.Value
+//            );
+
+//            // Set initial text
+//            _components.HealthText.text = $"{initialHealth:0}/{initialMaxHealth:0} HP";
+//            _logger.Msg("SimpleHealthBar: Initialized health bar UI");
+//        }
+
+//        /// <summary>
+//        /// Updates the health values and refreshes the displayed text.
+//        /// Call this whenever the player's health changes.
+//        /// </summary>
+//        /// <param name="currentHealth">The player's current health value.</param>
+//        /// <param name="maxHealth">The player's maximum health value.</param>
+//        public void UpdateHealth(float currentHealth, float maxHealth)
+//        {
+//            _model.SetHealth(currentHealth, maxHealth);
+//            _components.HealthText.text = $"{currentHealth:0}/{maxHealth:0} HP";
+//        }
+
+//        /// <summary>
+//        /// Called every frame to adjust visibility based on damage and UI events.
+//        /// </summary>
+//        /// <param name="phoneOpen">Whether the in-game phone/UI is currently open.</param>
+//        public void Update(bool phoneOpen)
+//        {
+//            _model.SetPhoneOpen(phoneOpen);
+//            float targetAlpha = _model.GetTargetAlpha(
+//                Preferences.FadeDelay.Value,
+//                Preferences.ShowOnDamage.Value
+//            );
+//            _animator.FadeTo(targetAlpha);
+//        }
+//    }
+//}
