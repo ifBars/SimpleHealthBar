@@ -1,13 +1,9 @@
 using System.Collections;
 using MelonLoader;
 using SimpleHealthBar.Helpers;
-using UnityEngine;
-using Il2CppScheduleOne.UI.Phone;
-using Il2CppScheduleOne.DevUtilities;
-using Il2CppScheduleOne.PlayerScripts;
-using Il2CppScheduleOne.UI;
 using SimpleHealthBar.NPCUtils;
-using SimpleHealthBar.Player;
+using SimpleHealthBar.PlayerUtils;
+
 
 
 
@@ -73,9 +69,8 @@ public class SimpleHealthBar : MelonMod
 
     private IEnumerator Init()
     {
-        yield return new WaitForSeconds(2f);
+        yield return Utils.WaitForPlayer(Utils.ReturnNull());
         PlayerHealthBarManager.Init(Logger);
         NPCHealthManager.Init(Logger);
-        Logger.Msg("Heathbar Initialized!");
     }
 }

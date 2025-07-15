@@ -19,6 +19,7 @@ namespace SimpleHealthBar.PlayerUtils
             PlayerHealthBar.SetPlayer(Il2CppScheduleOne.PlayerScripts.Player.Local);
             PlayerHealthBar.Init(HUD.Instance.transform);
             HasInitialized = true;
+            Logger.Msg("Player Healthbar Initialized!");
         }
 
         public static void OnUpdate()

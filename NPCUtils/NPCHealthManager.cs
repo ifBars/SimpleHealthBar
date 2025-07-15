@@ -22,6 +22,7 @@ namespace SimpleHealthBar.NPCUtils
                 NPCManager = NPCManager.Instance;
                 NPCSelectedBar = new NPCHealthBar();
                 NPCSelectedBar.Init(HUD.Instance.transform);
+                Logger.Msg("Nearest NPC Healthbar Initialized!");
             }
             else
                 Logger.Error("NPCManager not found, aborting NPC health reporting!");

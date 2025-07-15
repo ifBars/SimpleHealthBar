@@ -296,6 +296,11 @@ public static class Utils
         onFinish?.Invoke();
     }
 
+    public static IEnumerator ReturnNull()
+    {
+        yield return null;
+    }
+
     /// <summary>
     /// Waits for the given NetworkSingleton to be ready before starting the given coroutine.
     /// </summary>
