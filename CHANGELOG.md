@@ -1,4 +1,12 @@
 # Changelog
 
+## 1.2.5
+- Finalized NPC tracking by capping distance health can be seen.
+
+## 1.1
+- Added nearest NPC health tracking and a few config options
+
+## 1.0.1
+- Added extra config options for animations and fixed an issue with healthbar fading under certain circumstances.
 ## 1.0.0
-- added stuff
+- Initial upload

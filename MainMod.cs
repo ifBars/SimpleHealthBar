@@ -31,6 +31,7 @@ using Il2CppFishNet;
 )]
 [assembly: MelonColor(1, 255, 0, 0)]
 [assembly: MelonGame("TVGS", "Schedule I")]
+[assembly: System.Reflection.AssemblyMetadata("NexusModID", "1106")]
 
 namespace SimpleHealthBar;
 
@@ -39,7 +40,7 @@ public static class BuildInfo
     public const string Name = "SimpleHealthBar";
     public const string Description = "Gives you a health bar above your inventory.";
     public const string Author = "iTidez";
-    public const string Version = "1.1.1";
+    public const string Version = "1.2.5";
 }
 
 public class SimpleHealthBar : MelonMod

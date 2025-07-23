@@ -4,7 +4,7 @@
     <PropertyGroup>
         <!-- Testing props -->
         <!--<DefineConstants>$(DefineConstants);TestMultiplayer</DefineConstants>-->
-        <DefineConstants>$(DefineConstants);UnityExplorer</DefineConstants>
+        <!--<DefineConstants>$(DefineConstants);UnityExplorer</DefineConstants>-->
 
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>

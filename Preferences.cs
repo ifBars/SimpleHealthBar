@@ -24,6 +24,7 @@ namespace SimpleHealthBar
             Preferences.NPCHealthBar = MelonPreferences.CreateCategory("SimpleHealthBar_NPCHealthBar", "NPC Health Bar");
             Preferences.NPCHealthBarEnabled = Preferences.NPCHealthBar.CreateEntry<bool>("NPCBarEnabled", true, "NPC Health Bar Enabled", "Enables the health bar for the nearest NPC", false, false, null, null);
             Preferences.FadeOutNPCBar = Preferences.NPCHealthBar.CreateEntry<bool>("FadeOutNPCBar", true, "Fade out NPC Health Bar", "Enables fading out the health bar for the nearest NPC", false, false, null, null);
+            Preferences.NPCFadeOutDistance = Preferences.NPCHealthBar.CreateEntry<float>("NPCFadeOutDistance", 100f, "Distance from Player to Fade Out Bar", "Sets the distance from the player the NPC health bar should fade out", false, false, null, null);
         }
 
         public static MelonPreferences_Category Category;
@@ -37,5 +38,6 @@ namespace SimpleHealthBar
         public static MelonPreferences_Category NPCHealthBar;
         public static MelonPreferences_Entry<bool> NPCHealthBarEnabled;
         public static MelonPreferences_Entry<bool> FadeOutNPCBar;
+        public static MelonPreferences_Entry<float> NPCFadeOutDistance;
     }
 }

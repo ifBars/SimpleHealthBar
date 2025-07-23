@@ -1,5 +1,6 @@
 ﻿using Il2CppFluffyUnderware.DevTools.Extensions;
 using Il2CppScheduleOne.NPCs;
+using Il2CppScheduleOne.PlayerScripts;
 using Il2CppTMPro;
 using MelonLoader;
 using SimpleHealthBar.Helpers;
@@ -31,6 +32,7 @@ namespace SimpleHealthBar.UI
         private float LastHealthUpdateTime;
         private float CurrentFill;
         private bool HasIninitialized;
+        private bool IsOutOfSight;
         /*
          * End Variable Definition
          */
@@ -132,27 +134,47 @@ namespace SimpleHealthBar.UI
             b = timePassed > FadeDelay ? 0f : 1f;
             bool fillImage = NPCHealthBarFillImage != null;
             bool fadeBar = Preferences.FadeOutNPCBar.Value;
-            if (fillImage)
+            bool checkDistance = CheckDistanceFromPlayer();
+            if (fillImage && checkDistance)
             {
                 Color color = NPCHealthBarFillImage.color;
                 color.a = Mathf.Lerp(color.a, b, Time.deltaTime * Preferences.FadeSpeed.Value);
+                if(!checkDistance)
+                {
+                    color.a = Mathf.Lerp(color.a, 0f, Time.deltaTime * Preferences.FadeSpeed.Value);
+                }
+                if (!fadeBar)
+                    color.a = 1f;
+                NPCHealthBarFillImage.color = color;
+            } 
+            else if (fillImage && !checkDistance)
+            {
+                Color color = NPCHealthBarFillImage.color;
+                color.a = Mathf.Lerp(color.a, 0f, Time.deltaTime * Preferences.FadeSpeed.Value);
                 if (!fadeBar)
                     color.a = 1f;
                 NPCHealthBarFillImage.color = color;
             }
-            bool textGroup = NPCHealthTextGroup != null;
+                bool textGroup = NPCHealthTextGroup != null;
             if (GetNPCHealth() == 0f)
             {
                 NPCHealthTextGroup.alpha = Mathf.Lerp(NPCHealthTextGroup.alpha, 0f, Time.deltaTime + Preferences.FadeSpeed.Value);
             }
-            if (textGroup && fadeBar)
+            if (textGroup && fadeBar && checkDistance)
                 NPCHealthTextGroup.alpha = Mathf.Lerp(NPCHealthTextGroup.alpha, b, Time.deltaTime * Preferences.FadeSpeed.Value);
+            else if (textGroup && fadeBar && !checkDistance)
+                NPCHealthTextGroup.alpha = Mathf.Lerp(NPCHealthTextGroup.alpha, 0f, Time.deltaTime * Preferences.FadeSpeed.Value);
             else
                 NPCHealthTextGroup.alpha = 1f;
         }
 
         public void UpdateText()
         {
+            //if (GetDistanceFromPlayer() < MaxDistance)
+            //{
+            //    NPCHealthText.text = "";
+            //    return;
+            //}
             CurrentFill = selectedNPC.Health.Health;
             var npcHealthText = $"{selectedNPC.fullName} – {Mathf.FloorToInt(GetNPCHealth())} / 100 HP";
             if (CurrentFill == 0f)
@@ -172,15 +194,16 @@ namespace SimpleHealthBar.UI
             if (Preferences.NPCHealthBarEnabled.Value)
                 return;
             LastHealthUpdateTime = Time.time;
+            bool checkDistance = CheckDistanceFromPlayer();
             bool barFill = NPCHealthBarFillImage != null;
-            if(barFill)
+            if(barFill && checkDistance)
             {
                 Color newColor = NPCHealthBarFillImage.color;
                 newColor.a = 1f;
                 NPCHealthBarFillImage.color = Color.Lerp(NPCHealthBarFillImage.color, newColor, Preferences.FadeSpeed.Value);
             }
             bool textGroup = NPCHealthTextGroup != null;
-            if(textGroup)
+            if(textGroup && checkDistance)
             {
                 NPCHealthTextGroup.alpha = Mathf.Lerp(NPCHealthTextGroup.alpha, 1f, Preferences.FadeSpeed.Value);
             }
@@ -197,5 +220,33 @@ namespace SimpleHealthBar.UI
         }
 
         public float GetDisplayedHealth() { return CurrentFill; }
+
+        public float GetDistanceFromPlayer()
+        {
+            return (selectedNPC.Movement.FootPosition - Player.Local.CameraPosition).sqrMagnitude;
+        }
+
+        public bool CheckDistanceFromPlayer()
+        {
+            bool check = GetDistanceFromPlayer() < Preferences.NPCFadeOutDistance.Value;
+            if (!check && !IsOutOfSight)
+                IsOutOfSight = true;
+            else if (check && IsOutOfSight)
+            {
+                IsOutOfSight = false;
+                LastHealthUpdateTime = Time.time;
+            }
+                return check;
+        }
+
+        public bool CheckDistanceChanged()
+        {
+            bool check = GetDistanceFromPlayer() < Preferences.NPCFadeOutDistance.Value;
+            if (check && IsOutOfSight)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

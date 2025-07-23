@@ -3,6 +3,8 @@ using Il2CppScheduleOne.PlayerScripts;
 using Il2CppScheduleOne.UI;
 using MelonLoader;
 using SimpleHealthBar.UI;
+using System.Collections;
+using UnityEngine;
 
 namespace SimpleHealthBar.NPCUtils
 {
@@ -88,11 +90,15 @@ namespace SimpleHealthBar.NPCUtils
                     NPCSelectedBar.UpdateText();
                     NPCSelectedBar.Show();
                 }
+                if (NPCSelectedBar.CheckDistanceChanged())
+                {
+                    NPCSelectedBar.UpdateText();
+                    NPCSelectedBar.Show();
+                }
             }
-
             NPCSelectedBar.Update();
         }
-        
+
         public static void Unload()
         {
             IsInitialized = false;
