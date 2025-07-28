@@ -1,8 +1,11 @@
-[size=5]Simple Health Bar - V1.2.5[/size]
+[size=5]Simple Health Bar - V1.2.9 BETA[/size]
 [url=https://github.com/SirTidez/SimpleHealthBar][img]https://gist.githubusercontent.com/cxmeel/0dbc95191f239b631c3874f4ccf114e2/raw/github_source.svg[/img][/url]
 
 [hr][/hr]
 A lightweight mod that adds a clean, easy-to-read health bar above your inventory in [b]Schedule I[/b]. Keep track of your player’s health at a glance. No more guessing and checking! Now also includes a health bar for the NPC nearest you!
+
+[hr][/hr]
+Beta version now features Multiplayer Health Bars!
 
 [img]https://i.imgur.com/fUTUDkO.jpeg[/img]
 
@@ -26,7 +29,7 @@ Bar display duration, time, and speed via a simple config file. More coming in a
 
 [*][b]Future Enhancements (WIP)[/b]
 
-[list][*]Multiplayer health bars
+[list][*]Multiplayer health bars*
 [*]Customizable thresholds and warnings
 [*]User-suggested features – drop your ideas in the discussion!
 [/list]

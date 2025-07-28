@@ -1,7 +1,7 @@
 {
   "name": "SimpleHealthBar",
-  "version_number": "1.2.51",
-  "website_url": "",
+  "version_number": "1.2.9",
+  "website_url": "https://thunderstore.io/c/schedule-i/p/TrinityTechnologies/SimpleHealthBar/",
   "description": "Gives you a health bar above your inventory.",
   "dependencies": [
     "LavaGang-MelonLoader-0.7.0"
