@@ -1,14 +1,7 @@
-﻿using Il2CppFluffyUnderware.DevTools.Extensions;
-using Il2CppScheduleOne.NPCs;
+﻿using Il2CppScheduleOne.NPCs;
 using Il2CppScheduleOne.PlayerScripts;
 using Il2CppTMPro;
 using MelonLoader;
-using SimpleHealthBar.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
