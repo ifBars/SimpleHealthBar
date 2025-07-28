@@ -38,12 +38,13 @@ namespace SimpleHealthBar.PlayerUtils
         /// </summary>
         private static MultiplayerHealthbar CreatePlayerHealthbar(Il2CppScheduleOne.PlayerScripts.Player player)
         {
-            if (player == null)
+            if (player == null || PlayerHealthbars.Any(h => h.GetPlayer() == player) || !player.IsSpawned)
                 return null;
-            MultiplayerHealthbar healthbar = new MultiplayerHealthbar();
+            MultiplayerHealthbar healthbar = new();
             float adjustedHeight = ((PlayerHealthbars.Count > 0) ? (float)PlayerHealthbars.Count * 25f : 0f) + 105f;
             healthbar.Init(HUD.Instance.transform, new Vector2(0f, adjustedHeight), player);
-            PlayerHealthbars.Add(healthbar);
+            if(healthbar != null)
+                PlayerHealthbars.Add(healthbar);
             Logger.Msg($"Creating healthbar for player: {player.name}");
             return healthbar;
         }
@@ -60,16 +61,13 @@ namespace SimpleHealthBar.PlayerUtils
                 CheckCreate();
                 foreach (MultiplayerHealthbar healthbar in PlayerHealthbars)
                 {
-                    if (healthbar != null)
-                    {
-                        Player player = healthbar.GetPlayer();
-                        if (player != null && healthbar.GetPlayerHealth() != healthbar.GetDisplayedHealth())
-                        {
-                            healthbar.UpdateText();
-                            healthbar.Show();
-                        }
-                        healthbar.Update();
-                    }
+                     Player player = healthbar.GetPlayer();
+                     if (player != null && healthbar.GetPlayerHealth() != healthbar.GetDisplayedHealth() && player.IsSpawned)
+                     {
+                         healthbar.UpdateText();
+                         healthbar.Show();
+                     }
+                     healthbar.Update();
                 }
             }
         }
@@ -79,23 +77,12 @@ namespace SimpleHealthBar.PlayerUtils
         /// </summary>
         public static void CheckCreate()
         {
-            if (Player.PlayerList.Count < PlayerHealthbars.Count)
-            {
-                // Remove healthbars for players that no longer exist
-                PlayerHealthbars.ForEach(healthbar =>
-                {
-                    if (healthbar != null && !Player.PlayerList.Contains(healthbar.GetPlayer()))
-                    {
-                        healthbar.Hide();
-                        Logger.Msg($"Hiding healthbar for player: {healthbar.GetPlayer()?.name}");
-                    }
-                });
-                PlayerHealthbars.RemoveAll(healthbar => healthbar == null || !Player.PlayerList.Contains(healthbar.GetPlayer()));
-                UpdateLocation();
-            }
+            // Remove healthbars for players that no longer exist
+            PlayerHealthbars.RemoveAll(healthbar => healthbar.GetPlayer().IsOffline);
+            UpdateLocation();
             foreach (Il2CppScheduleOne.PlayerScripts.Player player in Il2CppScheduleOne.PlayerScripts.Player.PlayerList)
             {
-                if (player == null || player.IsLocalPlayer || PlayerHealthbars.Any(h => h.GetPlayer() == player))
+                if (player == null || player.IsLocalPlayer || PlayerHealthbars.Any(h => h.GetPlayer() == player) || !player.IsSpawned)
                     continue; // Skip local player or already existing healthbar
                 MultiplayerHealthbar healthbar = CreatePlayerHealthbar(player);
                 if (healthbar == null)
@@ -142,10 +129,6 @@ namespace SimpleHealthBar.PlayerUtils
         public static void Unload()
         {
             HasInitialized = false;
-            PlayerHealthbars.ForEach(healthbar =>
-            {
-                healthbar?.Hide();
-            });
             PlayerHealthbars.Clear();
         }
 

@@ -24,6 +24,7 @@ namespace SimpleHealthBar.UI
         private Vector2 AnchorMin;
         private Vector2 AnchorMax;
         private Vector2 AnchorPos;
+        private bool IsHidden;
 
         private float FadeSpeed = Preferences.FadeSpeed.Value;
         private float FadeDelay = Preferences.FadeDelay.Value;
@@ -97,6 +98,7 @@ namespace SimpleHealthBar.UI
             PlayerHealthText.alignment = TextAlignmentOptions.Left;
             PlayerHealthText.fontSize = 10f;
             ApplyTextShadow(PlayerHealthText);
+            IsHidden = false;
             Logger.Debug("Player Healthbar initialized");
             return this;
         }
@@ -147,18 +149,25 @@ namespace SimpleHealthBar.UI
             bool fillExists = PlayerHealthbarImage != null;
             bool textExists = PlayerHealthTextGroup != null;
 
-            PlayerHealthbarSlider.Set(Mathf.Lerp(PlayerHealthbarSlider.value, CurrentFill, Time.deltaTime * FadeDelay));
-            bool fadeBar = Preferences.FadeOutBar.Value;
-            if (fillExists)
+            if (CheckIsSpawned())
             {
-                Color color = PlayerHealthbarImage.color;
-                color.a = 1f;
-                PlayerHealthbarImage.color = color;
-            }
+                PlayerHealthbarSlider.Set(Mathf.Lerp(PlayerHealthbarSlider.value, CurrentFill, Time.deltaTime * FadeDelay));
+                bool fadeBar = Preferences.FadeOutBar.Value;
+                if (fillExists)
+                {
+                    Color color = PlayerHealthbarImage.color;
+                    color.a = 1f;
+                    PlayerHealthbarImage.color = color;
+                }
 
-            if (textExists)
+                if (textExists)
+                {
+                    PlayerHealthTextGroup.alpha = 1f;
+                }
+            } 
+            else
             {
-                PlayerHealthTextGroup.alpha = 1f;
+                Hide();
             }
         }
 
@@ -182,7 +191,7 @@ namespace SimpleHealthBar.UI
         /// </summary>
         public void Show()
         {
-            if (!Preferences.FadeOutBar.Value)
+            if (CheckIsSpawned())
             {
                 LastHealthUpdateTime = Time.time;
                 bool barFill = PlayerHealthbarImage != null;
@@ -198,6 +207,20 @@ namespace SimpleHealthBar.UI
                     PlayerHealthTextGroup.alpha = Mathf.Lerp(PlayerHealthTextGroup.alpha, 1f, FadeSpeed);
                 }
             }
+            else
+            {
+                Hide();
+            }
+        }
+
+        /// <summary>
+        /// Checks if the player is spawned and updates the visibility of the healthbar accordingly.
+        /// </summary>
+        public bool CheckIsSpawned()
+        {
+            bool isSpawned = PlayerInstance?.IsSpawned ?? false;
+            IsHidden = !isSpawned;
+            return isSpawned;
         }
 
         /// <summary>
@@ -217,6 +240,7 @@ namespace SimpleHealthBar.UI
              {
                  PlayerHealthTextGroup.alpha = 0f;
              }
+             IsHidden = true;
         }
 
         /// <summary>
