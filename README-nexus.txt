@@ -1,4 +1,6 @@
 [size=5]Simple Health Bar - V1.2.5[/size]
+[url=https://github.com/SirTidez/SimpleHealthBar][img]https://gist.githubusercontent.com/cxmeel/0dbc95191f239b631c3874f4ccf114e2/raw/github_source.svg[/img][/url]
+
 [hr][/hr]
 A lightweight mod that adds a clean, easy-to-read health bar above your inventory in [b]Schedule I[/b]. Keep track of your player’s health at a glance. No more guessing and checking! Now also includes a health bar for the NPC nearest you!
 

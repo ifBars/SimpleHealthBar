@@ -4,19 +4,6 @@ using SimpleHealthBar.Helpers;
 using SimpleHealthBar.NPCUtils;
 using SimpleHealthBar.PlayerUtils;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 #if MONO
 using FishNet;
 #else
@@ -47,12 +34,21 @@ public class SimpleHealthBar : MelonMod
 {
     private static MelonLogger.Instance Logger;
 
+    /// <summary>
+    /// Called when the mod is initialized. Sets up the logger and initializes user preferences.
+    /// </summary>
     public override void OnInitializeMelon()
     {
         Logger = LoggerInstance;
         Preferences.Init();
     }
 
+    /// <summary>
+    /// Called whenever a new scene is loaded. Starts initialization if the main scene is loaded,
+    /// or unloads all healthbar managers if the menu scene is loaded.
+    /// </summary>
+    /// <param name="buildIndex">The build index of the loaded scene.</param>
+    /// <param name="sceneName">The name of the loaded scene.</param>
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
     {
         Logger.Debug($"Scene loaded: {sceneName}");
@@ -64,14 +60,19 @@ public class SimpleHealthBar : MelonMod
         {
             PlayerHealthBarManager.Unload();
             NPCHealthManager.Unload();
+            MultiplayerHandler.Unload();
         }
     }
 
 
+    /// <summary>
+    /// Coroutine that waits for the player to be available, then initializes all healthbar managers.
+    /// </summary>
     private IEnumerator Init()
     {
         yield return Utils.WaitForPlayer(Utils.ReturnNull());
         PlayerHealthBarManager.Init(Logger);
         NPCHealthManager.Init(Logger);
+        MultiplayerHandler.Init(Logger);
     }
 }

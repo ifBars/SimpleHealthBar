@@ -3,8 +3,6 @@ using Il2CppScheduleOne.PlayerScripts;
 using Il2CppScheduleOne.UI;
 using MelonLoader;
 using SimpleHealthBar.UI;
-using System.Collections;
-using UnityEngine;
 
 namespace SimpleHealthBar.NPCUtils
 {
@@ -15,6 +13,10 @@ namespace SimpleHealthBar.NPCUtils
         private static NPCHealthBar NPCSelectedBar;
         private static bool IsInitialized = false;
 
+        /// <summary>
+        /// Initializes the NPC healthbar manager, setting up the logger and creating the healthbar for the nearest NPC if the NPCManager is available.
+        /// </summary>
+        /// <param name="logger">The logger instance to use for output.</param>
         public static void Init(MelonLogger.Instance logger)
         {
             Logger = logger;
@@ -30,6 +32,10 @@ namespace SimpleHealthBar.NPCUtils
                 Logger.Error("NPCManager not found, aborting NPC health reporting!");
         }
 
+        /// <summary>
+        /// Handles logic when an NPC is selected, updating and showing the healthbar if the selected NPC changes or its health changes.
+        /// </summary>
+        /// <param name="npc">The NPC that has been selected.</param>
         public static void OnNPCSelected(NPC npc)
         {
             if (IsInitialized)
@@ -54,6 +60,10 @@ namespace SimpleHealthBar.NPCUtils
         /*
          * Returns the NPC that is closest in distance to the player
          */
+        /// <summary>
+        /// Returns the NPC that is closest in distance to the player.
+        /// </summary>
+        /// <returns>The closest NPC instance, or null if none are found.</returns>
         public static NPC GetClosestNPC()
         {
             NPC closestNPC = null;
@@ -71,6 +81,9 @@ namespace SimpleHealthBar.NPCUtils
             return closestNPC;
         }
 
+        /// <summary>
+        /// Updates the NPC healthbar each frame, ensuring it tracks the closest NPC and updates when health or distance changes.
+        /// </summary>
         public static void OnUpdate()
         {
             if (!IsInitialized)
@@ -99,11 +112,18 @@ namespace SimpleHealthBar.NPCUtils
             NPCSelectedBar.Update();
         }
 
+        /// <summary>
+        /// Unloads the NPC healthbar manager, clearing references and resetting initialization state.
+        /// </summary>
         public static void Unload()
         {
             IsInitialized = false;
             NPCSelectedBar = null;
         }
+        /// <summary>
+        /// Returns whether the NPC healthbar manager has been initialized.
+        /// </summary>
+        /// <returns>True if initialized, otherwise false.</returns>
         public static bool Initialized() { return IsInitialized; }
     }
 }

@@ -3,6 +3,7 @@
         <IsMono Condition="'$(DefineConstants)' != '' and $(DefineConstants.Contains('MONO'))">true</IsMono>
         <IsMultiplayerTest Condition="'$(DefineConstants)' != '' and $(DefineConstants.Contains('TestMultiplayer'))">true</IsMultiplayerTest>
         <IsUnityExplorer Condition="'$(DefineConstants)' != '' and $(DefineConstants.Contains('UnityExplorer'))">true</IsUnityExplorer>
+        <IsPackaged Condition="'$(DefineConstants)' != '' and $(DefineConstants.Contains('IsPackaged'))">true</IsPackaged>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -26,4 +27,8 @@
         <S1ExePath>$(S1Dir)\$(S1ExeName)</S1ExePath>
         <S1ModsDir>$(S1Dir)\Mods</S1ModsDir>
     </PropertyGroup>
+    
+    <ItemGroup>
+        <ModList Include="$(CommonDir)\Test Mod List\*.dll" />
+    </ItemGroup>
 </Project>

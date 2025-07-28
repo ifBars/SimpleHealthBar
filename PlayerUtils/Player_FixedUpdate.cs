@@ -12,6 +12,7 @@ namespace SimpleHealthBar.PlayerUtils
         {
             NPCHealthManager.OnUpdate();
             PlayerHealthBarManager.OnUpdate();
+            MultiplayerHandler.OnUpdate();
         }
     }
 }

@@ -3,7 +3,7 @@
 
     <PropertyGroup>
         <!-- Testing props -->
-        <!--<DefineConstants>$(DefineConstants);TestMultiplayer</DefineConstants>-->
+        <DefineConstants>$(DefineConstants);TestMultiplayer</DefineConstants>
         <!--<DefineConstants>$(DefineConstants);UnityExplorer</DefineConstants>-->
 
         <ImplicitUsings>enable</ImplicitUsings>

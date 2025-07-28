@@ -20,10 +20,14 @@
               Command="powershell -Command &quot;&amp; { if (Test-Path '%(ModList.Identity)') { Copy-Item '%(ModList.Identity)' '$(S1ModsDir)' } else { Write-Host 'Mod not found: %(ModList.Identity)' } }&quot;" />
         
         <Message Condition="'$(IsMultiplayerTest)' == 'true'" Text="Multiplayer testing. Copying LocalMultiplayer mod and starter" Importance="high" />
-        <Exec Condition="'$(IsMultiplayerTest)' == 'true'" Command='powershell -Command "Copy-Item \"$(MultiplayerMod)\" \"$(S1ModsDir)\""' />
-        <Exec Condition="'$(IsMultiplayerTest)' == 'true'" Command='powershell -Command "Copy-Item \"$(MultiplayerModStarter)\" \"$(S1Dir)\""' />
+
+        <Exec Condition="'$(IsMultiplayerTest)' == 'true'" Command='copy "$(MultiplayerMod)" "$(S1ModsDir)"' />
+        <Exec Condition="'$(IsMultiplayerTest)' == 'true'" Command='copy "$(MultiplayerModStarter)" "$(S1Dir)"' />
+
+        <!-- <Exec Condition="'$(IsMultiplayerTest)' == 'true'" Command='powershell -Command "Copy-Item "$(MultiplayerMod)\" \"$(S1ModsDir)\""' />
+        <Exec Condition="'$(IsMultiplayerTest)' == 'true'" Command='powershell -Command "Copy-Item "$(MultiplayerModStarter)\" \"$(S1Dir)\""' /> -->
         
-        <Exec Command='copy "$(ModManagerDir)" "$(S1ModsDir)"' />
+        <!--<Exec Command='copy "$(ModManagerDir)" "$(S1ModsDir)"' />-->
         <!-- <Exec Command='powershell -Command "Copy-Item D:\Schedule 1 Modding\ModManager\ModManager.dll" "$(S1ModsDir)\"' /> -->
 
         <Message Condition="'$(IsUnityExplorer)' == 'true'" Text="UnityExplorer enabled. Copying UnityExplorer mod..." Importance="high" />
@@ -44,7 +48,15 @@
             Command="powershell -Command &quot;Start-Process -FilePath '&quot;$(S1ExePath)&quot;'&quot;" />
 
         <Message Condition="'$(IsMultiplayerTest)' == 'true'" Text="Multiplayer mode: launching mod starter..." Importance="high" />
+        <!--<Exec Condition="'$(IsMultiplayerTest)' == 'true'"
+              Command='powershell -Command "Start-Process -FilePath \"$(MultiplayerModStarter)\" -WorkingDirectory \"$(S1Dir)\""' />-->
         <Exec Condition="'$(IsMultiplayerTest)' == 'true'"
-              Command='powershell -Command "Start-Process -FilePath \"$(MultiplayerModStarter)\" -WorkingDirectory \"$(S1Dir)\""' />
+              Command='"$(S1Dir)\LocalMultiplayer.bat"' WorkingDirectory="$(S1Dir)" />
+        <!--<Exec Condition="'$(IsMultiplayerTest)' == 'true'"
+            Command="powershell -Command Start-Process '$(S1Dir)\LocalMultiplayer.bat' -WorkingDirectory '$(S1Dir)'" />-->
+        <!--<Exec Condition="'$(IsMultiplayerTest)' == 'true'"
+              Command='powershell -Command "Start-Process -FilePath "$(S1Dir)\LocalMultiplayer.bat"' />-->
+        <!--<Exec Condition="'$(IsMultiplayerTest)' == 'true'"
+            Command="Invoke-Expression -Command '$(S1Dir)\LocalMultiplayer.bat'" />-->
     </Target>
 </Project>
