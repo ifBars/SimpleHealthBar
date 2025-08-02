@@ -3,7 +3,7 @@
 
     <PropertyGroup>
         <!-- Testing props -->
-        <DefineConstants>$(DefineConstants);TestMultiplayer</DefineConstants>
+        <!--<DefineConstants>$(DefineConstants);TestMultiplayer</DefineConstants>-->
         <!--<DefineConstants>$(DefineConstants);UnityExplorer</DefineConstants>-->
 
         <ImplicitUsings>enable</ImplicitUsings>
@@ -64,6 +64,10 @@
         <Generator>ResXFileCodeGenerator</Generator>
         <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="BepInEx.AssemblyPublicizer" Version="0.4.3" />
     </ItemGroup>
 
     <!-- MelonLoader References -->

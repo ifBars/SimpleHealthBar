@@ -1,5 +1,10 @@
-﻿using Il2CppScheduleOne.PlayerScripts;
+﻿#if MONO
+using ScheduleOne.PlayerScripts;
+using TMPro;
+#else
+using Il2CppScheduleOne.PlayerScripts;
 using Il2CppTMPro;
+#endif
 using MelonLoader;
 using SimpleHealthBar.Helpers;
 using UnityEngine;
@@ -151,7 +156,11 @@ namespace SimpleHealthBar.UI
 
             if (CheckIsSpawned())
             {
+#if !MONO
                 PlayerHealthbarSlider.Set(Mathf.Lerp(PlayerHealthbarSlider.value, CurrentFill, Time.deltaTime * FadeDelay));
+#else
+                PlayerHealthbarSlider.value = Mathf.Lerp(PlayerHealthbarSlider.value, CurrentFill, Time.deltaTime * FadeDelay);
+#endif
                 bool fadeBar = Preferences.FadeOutBar.Value;
                 if (fillExists)
                 {

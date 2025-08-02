@@ -1,6 +1,12 @@
-﻿using Il2CppScheduleOne.NPCs;
+﻿#if MONO
+using ScheduleOne.PlayerScripts;
+using ScheduleOne.UI;
+using ScheduleOne.NPCs;
+#else
+using Il2CppScheduleOne.NPCs;
 using Il2CppScheduleOne.PlayerScripts;
 using Il2CppScheduleOne.UI;
+#endif
 using MelonLoader;
 using SimpleHealthBar.UI;
 

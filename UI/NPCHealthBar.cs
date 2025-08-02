@@ -1,6 +1,12 @@
-﻿using Il2CppScheduleOne.NPCs;
+﻿#if MONO
+using ScheduleOne.NPCs;
+using ScheduleOne.PlayerScripts;
+using TMPro;
+#else
+using Il2CppScheduleOne.NPCs;
 using Il2CppScheduleOne.PlayerScripts;
 using Il2CppTMPro;
+#endif
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.UI;

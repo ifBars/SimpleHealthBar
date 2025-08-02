@@ -1,5 +1,10 @@
-﻿using Il2CppScheduleOne.PlayerScripts;
+﻿#if MONO
+using ScheduleOne.PlayerScripts;
+using ScheduleOne.UI;
+#else
+using Il2CppScheduleOne.PlayerScripts;
 using Il2CppScheduleOne.UI;
+#endif
 using MelonLoader;
 using SimpleHealthBar.UI;
 using UnityEngine;
@@ -19,7 +24,7 @@ namespace SimpleHealthBar.PlayerUtils
         public static void Init(MelonLogger.Instance logger)
         {
             Logger = logger;
-            foreach (Il2CppScheduleOne.PlayerScripts.Player player in Il2CppScheduleOne.PlayerScripts.Player.PlayerList)
+            foreach (Player player in Player.PlayerList)
             {
                 if(player == null || player.IsLocalPlayer)
                     continue; // Skip local player or null players
@@ -36,7 +41,7 @@ namespace SimpleHealthBar.PlayerUtils
         /// <summary>
         /// Creates and initializes a healthbar for the specified player, positions it, and adds it to the list.
         /// </summary>
-        private static MultiplayerHealthbar CreatePlayerHealthbar(Il2CppScheduleOne.PlayerScripts.Player player)
+        private static MultiplayerHealthbar CreatePlayerHealthbar(Player player)
         {
             if (player == null || PlayerHealthbars.Any(h => h.GetPlayer() == player) || !player.IsSpawned)
                 return null;
@@ -80,7 +85,7 @@ namespace SimpleHealthBar.PlayerUtils
             // Remove healthbars for players that no longer exist
             PlayerHealthbars.RemoveAll(healthbar => healthbar.GetPlayer().IsOffline);
             UpdateLocation();
-            foreach (Il2CppScheduleOne.PlayerScripts.Player player in Il2CppScheduleOne.PlayerScripts.Player.PlayerList)
+            foreach (Player player in Player.PlayerList)
             {
                 if (player == null || player.IsLocalPlayer || PlayerHealthbars.Any(h => h.GetPlayer() == player) || !player.IsSpawned)
                     continue; // Skip local player or already existing healthbar

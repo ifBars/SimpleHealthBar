@@ -1,5 +1,10 @@
-﻿using Il2CppScheduleOne.PlayerScripts;
+﻿#if MONO
+using ScheduleOne.PlayerScripts;
+using TMPro;
+#else
+using Il2CppScheduleOne.PlayerScripts;
 using Il2CppTMPro;
+#endif
 using MelonLoader;
 using SimpleHealthBar.Helpers;
 using UnityEngine;
@@ -18,7 +23,7 @@ namespace SimpleHealthBar.UI
         private Image PlayerHealthbarImage;
         private TextMeshProUGUI PlayerHealthText;
         private CanvasGroup PlayerHealthTextGroup;
-        private Il2CppScheduleOne.PlayerScripts.Player Player;
+        private Player Player;
         private float LastHealthUpdateTime;
         private float PauseStartTime;
         private float PauseAccumulated;
@@ -94,13 +99,13 @@ namespace SimpleHealthBar.UI
         /// Sets the player instance associated with this health bar.
         /// </summary>
         /// <param name="player">The player instance to associate.</param>
-        public void SetPlayer(Il2CppScheduleOne.PlayerScripts.Player player) { Player = player; }
+        public void SetPlayer(Player player) { Player = player; }
 
         /// <summary>
         /// Gets the player instance associated with this health bar.
         /// </summary>
         /// <returns>The associated player instance.</returns>
-        public Il2CppScheduleOne.PlayerScripts.Player GetPlayer() { return Player; }
+        public Player GetPlayer() { return Player; }
 
         /// <summary>
         /// Retrieves the current health value of the associated player.
@@ -154,7 +159,11 @@ namespace SimpleHealthBar.UI
                     LastPhoneOpen = false;
                 }
                 float timePassed = Time.time - LastHealthUpdateTime;
+#if !MONO
                 PlayerHealthbarSlider.Set(Mathf.Lerp(PlayerHealthbarSlider.value, CurrentFill, Time.deltaTime * FadeDelay));
+#else
+                PlayerHealthbarSlider.value = Mathf.Lerp(PlayerHealthbarSlider.value, CurrentFill, Time.deltaTime * FadeDelay);
+#endif
                 float finalAlpha = 1f;
                 if (Preferences.FadeHealthText.Value)
                 {

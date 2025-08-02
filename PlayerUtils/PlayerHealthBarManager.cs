@@ -1,6 +1,13 @@
-﻿using Il2CppScheduleOne.DevUtilities;
+﻿#if MONO
+using ScheduleOne.PlayerScripts;
+using ScheduleOne.DevUtilities;
+using ScheduleOne.UI;
+using ScheduleOne.UI.Phone;
+#else
+using Il2CppScheduleOne.DevUtilities;
 using Il2CppScheduleOne.UI;
 using Il2CppScheduleOne.UI.Phone;
+#endif
 using MelonLoader;
 using SimpleHealthBar.UI;
 
@@ -20,7 +27,11 @@ namespace SimpleHealthBar.PlayerUtils
         {
             Logger = logger;
             PlayerHealthBar = new PlayerHealthBar();
+#if !MONO
             PlayerHealthBar.SetPlayer(Il2CppScheduleOne.PlayerScripts.Player.Local);
+#else
+            PlayerHealthBar.SetPlayer(ScheduleOne.PlayerScripts.Player.Local);
+#endif
             PlayerHealthBar.Init(HUD.Instance.transform);
             HasInitialized = true;
             Logger.Msg("Player Healthbar Initialized!");
@@ -33,7 +44,7 @@ namespace SimpleHealthBar.PlayerUtils
         {
             if (!HasInitialized)
                 return;
-            Il2CppScheduleOne.PlayerScripts.Player player = PlayerHealthBar.GetPlayer();
+            Player player = PlayerHealthBar.GetPlayer();
             Phone phone = PlayerSingleton<Phone>.Instance;
             bool phoneOpen = phone != null && phone.IsOpen;
             if(PlayerHealthBar != null || player != null)
