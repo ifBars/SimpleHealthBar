@@ -7,6 +7,7 @@ using ScheduleOne.UI.Phone;
 using Il2CppScheduleOne.DevUtilities;
 using Il2CppScheduleOne.UI;
 using Il2CppScheduleOne.UI.Phone;
+using Il2CppScheduleOne.PlayerScripts;
 #endif
 using MelonLoader;
 using SimpleHealthBar.UI;

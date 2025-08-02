@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0
+- BETA Upload
+- Added Mono support
+- Slightly tweaked some logic
+
+## 1.2.9
+- BETA Upload
+- Adds multiplayer support
+
 ## 1.2.5
 - Finalized NPC tracking by capping distance health can be seen.
 

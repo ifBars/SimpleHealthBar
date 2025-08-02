@@ -4,7 +4,7 @@
 $AssetDir = $PSScriptRoot
 $ProjectRoot = Resolve-Path "$AssetDir\.."
 $IL2CPPAssembly = Join-Path $ProjectRoot "bin\Release IL2CPP\net6\$ModName-IL2CPP.dll"
-$MonoAssembly = Join-Path $ProjectRoot "bin\Release\netstandard2.1\$ModName-Mono.dll"
+$MonoAssembly = Join-Path $ProjectRoot "bin\Release Mono\netstandard2.1\$ModName-Mono.dll"
 $TSZip = Join-Path $AssetDir "$ModName-TS.zip"
 $NexusIL2CPPZip = Join-Path $AssetDir "$ModName-IL2CPP.zip"
 $NexusMonoZip = Join-Path $AssetDir "$ModName-Mono.zip"
@@ -30,14 +30,26 @@ $TSFiles = @(
     "$ProjectRoot\CHANGELOG.md",
     "$AssetDir\manifest.json"
 )
-if ($hasIL2CPP) {
+if ($hasIL2CPP -and !$hasMono) {
     $TSFiles += $IL2CPPAssembly
-} elseif ($hasMono) {
+} elseif ($hasMono -and !$hasIL2CPP) {
     $TSFiles += $MonoAssembly
+} elseif ($hasMono -and $hasIL2CPP) {
+    $TSFiles += $IL2CPPAssembly
+    $TSMonoZip = Join-Path $AssetDir "$ModName-TS-Mono.zip"
+    $TSMonoFiles = @(
+        "$AssetDir\icon.png",
+        "$ProjectRoot\README.md",
+        "$ProjectRoot\CHANGELOG.md",
+        "$AssetDir\manifest-mono.json"
+    )
+    $TSMonoFiles += $MonoAssembly
+    Compress-Archive -Path $TSMonoFiles -DestinationPath $TSMonoZip -Force
+    Write-Host "Created Thunderstore Mono package: $TSZip"
 }
 
 Compress-Archive -Path $TSFiles -DestinationPath $TSZip -Force
-Write-Host "Created Thunderstore package: $TSZip"
+Write-Host "Created Thunderstore Il2Cpp package: $TSZip"
 
 # --- Package Nexus ---
 if ($hasIL2CPP) {
