@@ -5,6 +5,7 @@ using Il2CppScheduleOne.PlayerScripts;
 #endif
 using HarmonyLib;
 using SimpleHealthBar.NPCUtils;
+using SimpleHealthBar.PlayerUtils;
 
 namespace SimpleHealthBar.PlayerUtils
 {

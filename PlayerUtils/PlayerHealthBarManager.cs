@@ -8,16 +8,19 @@ using Il2CppScheduleOne.DevUtilities;
 using Il2CppScheduleOne.UI;
 using Il2CppScheduleOne.UI.Phone;
 using Il2CppScheduleOne.PlayerScripts;
+using Il2CppCinemachine;
 #endif
 using MelonLoader;
+using SimpleHealthBar.Helpers;
 using SimpleHealthBar.UI;
+using UnityEngine;
 
 namespace SimpleHealthBar.PlayerUtils
 {
     class PlayerHealthBarManager
     {
-        private static MelonLogger.Instance Logger;
-        private static PlayerHealthBar PlayerHealthBar;
+        private static Player LocalPlayer;
+        private static HealthBar HealthBar;
         private static bool HasInitialized = false;
 
         /// <summary>
@@ -26,16 +29,23 @@ namespace SimpleHealthBar.PlayerUtils
         /// <param name="logger">The logger instance to use for output.</param>
         public static void Init(MelonLogger.Instance logger)
         {
-            Logger = logger;
-            PlayerHealthBar = new PlayerHealthBar();
+            ModLogger.Info("Initializing Player Health Bar");
+            //PlayerHealthBar = new PlayerHealthBar();
 #if !MONO
-            PlayerHealthBar.SetPlayer(Il2CppScheduleOne.PlayerScripts.Player.Local);
+            //PlayerHealthBar.SetPlayer(Il2CppScheduleOne.PlayerScripts.Player.Local);
+            LocalPlayer = Il2CppScheduleOne.PlayerScripts.Player.Local;
 #else
-            PlayerHealthBar.SetPlayer(ScheduleOne.PlayerScripts.Player.Local);
+            //PlayerHealthBar.SetPlayer(ScheduleOne.PlayerScripts.Player.Local);
+            LocalPlayer = ScheduleOne.PlayerScripts.Player.Local;
 #endif
-            PlayerHealthBar.Init(HUD.Instance.transform);
+#if MONO
+            HealthBar = new HealthBar(HealthBarType.Player, HUD.instance.transform);
+#else
+            HealthBar = new HealthBar(HealthBarType.Player, HUD.Instance.transform);
+#endif
+            //PlayerHealthBar.Init(HUD.Instance.transform);
             HasInitialized = true;
-            Logger.Msg("Player Healthbar Initialized!");
+            ModLogger.Info("Player Healthbar Initialized!");
         }
 
         /// <summary>
@@ -45,17 +55,22 @@ namespace SimpleHealthBar.PlayerUtils
         {
             if (!HasInitialized)
                 return;
-            Player player = PlayerHealthBar.GetPlayer();
             Phone phone = PlayerSingleton<Phone>.Instance;
             bool phoneOpen = phone != null && phone.IsOpen;
-            if(PlayerHealthBar != null || player != null)
+            
+            if (HealthBar != null && LocalPlayer != null)
             {
-                if (PlayerHealthBar.GetPlayerHealth() != PlayerHealthBar.GetDisplayedHealth())
+                float currentHealth = LocalPlayer.Health.CurrentHealth;
+                float displayedHealth = HealthBar.GetCurrentHealth();
+                
+                if (currentHealth != displayedHealth)
                 {
-                    PlayerHealthBar.UpdateText();
-                    PlayerHealthBar.Show();
+                    ModLogger.Debug($"Health changed from {displayedHealth} to {currentHealth}");
+                    HealthBar.SetCurrentHealth(currentHealth);
+                    HealthBar.UpdateText();
+                    HealthBar.Show();
                 }
-                PlayerHealthBar.Update(phoneOpen);
+                HealthBar.Update(phoneOpen);
             }
         }
 
@@ -65,7 +80,7 @@ namespace SimpleHealthBar.PlayerUtils
         public static void Unload()
         {
             HasInitialized = false;
-            PlayerHealthBar = null;
+            HealthBar = null;
         }
 
         /// <summary>

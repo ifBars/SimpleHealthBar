@@ -4,8 +4,11 @@ using ScheduleOne.UI;
 #else
 using Il2CppScheduleOne.PlayerScripts;
 using Il2CppScheduleOne.UI;
+using Il2CppSystem.Collections.Generic;
+
 #endif
 using MelonLoader;
+using SimpleHealthBar.Helpers;
 using SimpleHealthBar.UI;
 using UnityEngine;
 
@@ -13,8 +16,10 @@ namespace SimpleHealthBar.PlayerUtils
 {
     class MultiplayerHandler
     {
-        private static MelonLogger.Instance Logger;
-        private static List<MultiplayerHealthbar> PlayerHealthbars = new List<MultiplayerHealthbar>();
+        //private static List<MultiplayerHealthbar> PlayerHealthbars = new List<MultiplayerHealthbar>();
+
+        private static System.Collections.Generic.Dictionary<Player, HealthBar> MultiplayerHealthbars = new System.Collections.Generic.Dictionary<Player, HealthBar>();
+
         private static bool HasInitialized = false;
         private static bool IsMultiplayer = false;
 
@@ -23,34 +28,42 @@ namespace SimpleHealthBar.PlayerUtils
         /// </summary>
         public static void Init(MelonLogger.Instance logger)
         {
-            Logger = logger;
             foreach (Player player in Player.PlayerList)
             {
                 if(player == null || player.IsLocalPlayer)
                     continue; // Skip local player or null players
-                MultiplayerHealthbar healthbar = CreatePlayerHealthbar(player);
+                HealthBar healthbar = CreatePlayerHealthbar(player);
+                
                 if (healthbar == null)
                 {
-                    Logger.Error($"Failed to create healthbar for player: {player.name}");
+                    ModLogger.Error($"Failed to create healthbar for player: {player.name}");
                 }
             }
             HasInitialized = true;
-            Logger.Msg("Player Healthbar Initialized!");
+            ModLogger.Info("Player Healthbar Initialized!");
         }
 
         /// <summary>
         /// Creates and initializes a healthbar for the specified player, positions it, and adds it to the list.
         /// </summary>
-        private static MultiplayerHealthbar CreatePlayerHealthbar(Player player)
+        private static HealthBar CreatePlayerHealthbar(Player player)
         {
-            if (player == null || PlayerHealthbars.Any(h => h.GetPlayer() == player) || !player.IsSpawned)
+            //if (player == null || PlayerHealthbars.Any(h => h.GetPlayer() == player) || !player.IsSpawned)
+            //    return null;
+            if (player == null || MultiplayerHealthbars.ContainsKey(player))
                 return null;
-            MultiplayerHealthbar healthbar = new();
-            float adjustedHeight = ((PlayerHealthbars.Count > 0) ? (float)PlayerHealthbars.Count * 25f : 0f) + 105f;
-            healthbar.Init(HUD.Instance.transform, new Vector2(0f, adjustedHeight), player);
-            if(healthbar != null)
-                PlayerHealthbars.Add(healthbar);
-            Logger.Msg($"Creating healthbar for player: {player.name}");
+            //MultiplayerHealthbar healthbar = new();
+            //float adjustedHeight = ((PlayerHealthbars.Count > 0) ? (float)PlayerHealthbars.Count * 25f : 0f) + 105f;
+            float adjustedHeight = ((MultiplayerHealthbars.Count > 0) ? (float)MultiplayerHealthbars.Count * 25f : 0f) + 105f;
+#if MONO
+            HealthBar healthbar = new(HealthBarType.Multiplayer, HUD.instance.transform, new Vector2(0f, adjustedHeight));
+#else
+            HealthBar healthbar = new(HealthBarType.Multiplayer, HUD.Instance.transform, new Vector2(0f, adjustedHeight));
+#endif
+            if (healthbar != null)
+                MultiplayerHealthbars.Add(player, healthbar);
+                //PlayerHealthbars.Add(healthbar);
+            ModLogger.Debug($"Creating healthbar for player: {player.name}");
             return healthbar;
         }
 
@@ -64,15 +77,36 @@ namespace SimpleHealthBar.PlayerUtils
             if (IsMultiplayerMode())
             {
                 CheckCreate();
-                foreach (MultiplayerHealthbar healthbar in PlayerHealthbars)
+                foreach (Player p in Player.PlayerList)
                 {
-                     Player player = healthbar.GetPlayer();
-                     if (player != null && healthbar.GetPlayerHealth() != healthbar.GetDisplayedHealth() && player.IsSpawned)
-                     {
-                         healthbar.UpdateText();
-                         healthbar.Show();
-                     }
-                     healthbar.Update();
+                    if (p != null && !p.IsLocalPlayer)
+                    {
+                        if (MultiplayerHealthbars.ContainsKey(p))
+                        {
+                            HealthBar healthBar = MultiplayerHealthbars[p];
+                            if (healthBar.GetCurrentHealth() != p.Health.CurrentHealth && p.IsSpawned)
+                            {
+                                healthBar.SetCurrentHealth(p.Health.CurrentHealth);
+                                healthBar.UpdateText($"{p.name}");
+                                healthBar.Show();
+                            }
+                            healthBar.Update(p.IsSpawned);
+                        }
+                        else
+                        {
+                            float adjustedHeight = ((MultiplayerHealthbars.Count > 0) ? (float)MultiplayerHealthbars.Count * 25f : 0f) + 105f;
+#if MONO
+                            HealthBar healthBar = new HealthBar(HealthBarType.Multiplayer, HUD.instance.transform, new Vector2(0f, adjustedHeight));
+#else
+                            HealthBar healthBar = new HealthBar(HealthBarType.Multiplayer, HUD.Instance.transform, new Vector2(0f, adjustedHeight));
+#endif
+                            MultiplayerHealthbars.Add(p, healthBar);
+                            healthBar.SetCurrentHealth(p.Health.CurrentHealth);
+                            healthBar.UpdateText($"{p.name}");
+                            healthBar.Show();
+                            healthBar.Update(p.IsSpawned);
+                        }
+                    }
                 }
             }
         }
@@ -83,16 +117,29 @@ namespace SimpleHealthBar.PlayerUtils
         public static void CheckCreate()
         {
             // Remove healthbars for players that no longer exist
-            PlayerHealthbars.RemoveAll(healthbar => healthbar.GetPlayer().IsOffline);
             UpdateLocation();
             foreach (Player player in Player.PlayerList)
             {
-                if (player == null || player.IsLocalPlayer || PlayerHealthbars.Any(h => h.GetPlayer() == player) || !player.IsSpawned)
-                    continue; // Skip local player or already existing healthbar
-                MultiplayerHealthbar healthbar = CreatePlayerHealthbar(player);
-                if (healthbar == null)
+                if (player == null || player.IsLocalPlayer)
+                    continue;
+                if (MultiplayerHealthbars.ContainsKey(player) && player.IsOffline)
                 {
-                    Logger.Error($"Failed to create healthbar for player: {player.name}");
+                    MultiplayerHealthbars[player].Dispose();
+                    MultiplayerHealthbars.Remove(player);
+                }
+                if (MultiplayerHealthbars.ContainsKey(player) || !player.IsSpawned)
+                    continue;
+                HealthBar healthbar = CreatePlayerHealthbar(player);
+                if (healthbar != null)
+                {
+                    MultiplayerHealthbars.Add(player, healthbar);
+                    healthbar.SetCurrentHealth(player.Health.CurrentHealth);
+                    healthbar.UpdateText($"{player.name}");
+                    healthbar.Show();
+                }
+                else
+                {
+                    ModLogger.Error($"Failed to create healthbar for player: {player.name}");
                 }
             }
         }
@@ -105,9 +152,9 @@ namespace SimpleHealthBar.PlayerUtils
             if (!HasInitialized)
                 return;
             int index = 0;
-            foreach (MultiplayerHealthbar healthbar in PlayerHealthbars)
+            foreach (HealthBar healthbar in MultiplayerHealthbars.Values)
             {
-                if (healthbar != null && healthbar.GetPlayer() != null)
+                if (healthbar != null)
                 {
                     float adjustedHeight = (index * 25f) + 105f;
                     healthbar.SetAnchoredPosition(new Vector2(0f, adjustedHeight));
@@ -134,7 +181,8 @@ namespace SimpleHealthBar.PlayerUtils
         public static void Unload()
         {
             HasInitialized = false;
-            PlayerHealthbars.Clear();
+            //PlayerHealthbars.Clear();
+            MultiplayerHealthbars.Clear();
         }
 
         /// <summary>

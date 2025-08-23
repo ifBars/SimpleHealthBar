@@ -20,6 +20,63 @@ using Object = Il2CppSystem.Object;
 
 namespace SimpleHealthBar.Helpers;
 
+/// <summary>
+/// Centralized logging utility for the SimpleHealthBar mod.
+/// Provides consistent logging methods across all components.
+/// </summary>
+public static class ModLogger
+{
+    private static MelonLogger.Instance Logger = new MelonLogger.Instance($"{BuildInfo.Name}-ModLogger");
+    private static bool IsDebugEnabled = false;
+
+    /// <summary>
+    /// Sets the debug logging preference.
+    /// </summary>
+    /// <param name="enabled">Whether debug logging should be enabled.</param>
+    public static void SetDebugEnabled(bool enabled)
+    {
+        IsDebugEnabled = enabled;
+    }
+
+    /// <summary>
+    /// Logs a debug message. Only outputs if debug logging is enabled.
+    /// </summary>
+    /// <param name="message">The debug message to log.</param>
+    public static void Debug(string message)
+    {
+        if (IsDebugEnabled)
+        {
+            Logger.Msg($"[DEBUG] {message}");
+        }
+    }
+
+    /// <summary>
+    /// Logs an error message.
+    /// </summary>
+    /// <param name="message">The error message to log.</param>
+    public static void Error(string message)
+    {
+        Logger.Error(message);
+    }
+
+    /// <summary>
+    /// Logs a warning message.
+    /// </summary>
+    /// <param name="message">The warning message to log.</param>
+    public static void Warn(string message)
+    {
+        Logger.Warning(message);
+    }
+
+    /// <summary>
+    /// Logs an informational message.
+    /// </summary>
+    /// <param name="message">The informational message to log.</param>
+    public static void Info(string message)
+    {
+        Logger.Msg(message);
+    }
+}
 
 /// <summary>
 /// Provides extension methods for converting between C# and Il2Cpp lists.
@@ -87,9 +144,6 @@ public static class Il2CppListExtensions
 /// </summary>
 public static class Utils
 {
-    private static readonly MelonLogger.Instance Logger = new MelonLogger.Instance(
-        $"{BuildInfo.Name}-Utils"
-    );
 
     /// <summary>
     /// Searches all loaded objects of type <typeparamref name="T"/> and returns the first one matching the given name.
@@ -112,7 +166,6 @@ public static class Utils
             {
                 if (obj.name != objectName)
                     continue;
-                Logger.Debug($"Found {typeof(T).Name} '{objectName}' directly in loaded objects");
                 return obj;
             }
 
@@ -120,7 +173,7 @@ public static class Utils
         }
         catch (Exception ex)
         {
-            Logger.Error($"Error finding {typeof(T).Name} '{objectName}': {ex.Message}");
+            ModLogger.Error($"Error finding {typeof(T).Name} '{objectName}': {ex.Message}");
             return null;
         }
     }
@@ -230,7 +283,7 @@ public static class Utils
             }
             else
             {
-                Logger.Warning(
+                ModLogger.Warn(
                     $"Definition {item.Definition?.GetType().FullName} is not a StorableItemDefinition"
                 );
             }
@@ -251,6 +304,132 @@ public static class Utils
 
         // player is ready, start the coroutine
         MelonCoroutines.Start(routine);
+    }
+
+    /// <summary>
+    /// Waits for the player to be fully spawned and ready before starting the given coroutine.
+    /// This method is more robust for Mono builds where player spawning might take longer.
+    /// </summary>
+    /// <param name="routine">Coroutine to start when player is ready</param>
+    /// <returns>An enumerator that waits for the player to be fully spawned.</returns>
+    public static IEnumerator WaitForPlayerSpawned(IEnumerator routine)
+    {
+        float startTime = Time.time;
+        float timeout = 30f; // 30 second timeout to prevent infinite waiting
+        
+        ModLogger.Info("WaitForPlayerSpawned started - waiting for player to be fully spawned...");
+        
+        while (Time.time - startTime < timeout)
+        {
+#if MONO
+            if (Player.Local != null && Player.Local.gameObject != null)
+            {
+                // More comprehensive checks for Mono
+                if (Player.Local.gameObject.activeInHierarchy && 
+                    Player.Local.Health != null)
+                {
+                    ModLogger.Info("Player fully spawned on Mono - starting initialization");
+                    break;
+                }
+                else
+                {
+                    // Log what's missing for debugging
+                    if (Player.Local.gameObject == null) ModLogger.Info("Player.Local.gameObject is null");
+                    else if (!Player.Local.gameObject.activeInHierarchy) ModLogger.Info("Player.Local.gameObject is not active");
+                    else if (Player.Local.Health == null) ModLogger.Info("Player.Local.Health is null");
+                }
+            }
+            else
+            {
+                if (Player.Local == null) ModLogger.Info("Player.Local is null");
+                else if (Player.Local.gameObject == null) ModLogger.Info("Player.Local.gameObject is null");
+            }
+#else
+            if (Player.Local != null && Player.Local.gameObject != null)
+            {
+                if (Player.Local.gameObject.activeInHierarchy && Player.Local.Health != null)
+                {
+                    ModLogger.Info("Player fully spawned on IL2CPP - starting initialization");
+                    break;
+                }
+            }
+#endif
+            yield return Utils.WaitForSeconds(0.1f); // Check every 100ms instead of every frame
+        }
+        
+        if (Time.time - startTime >= timeout)
+        {
+            ModLogger.Warn("Timeout waiting for player to spawn - proceeding anyway");
+        }
+
+        // player is ready, start the coroutine
+        MelonCoroutines.Start(routine);
+    }
+
+    /// <summary>
+    /// Debug method to log the current state of player detection.
+    /// Useful for troubleshooting initialization issues.
+    /// </summary>
+    public static void LogPlayerState()
+    {
+        try
+        {
+#if MONO
+            if (Player.Local == null)
+            {
+                ModLogger.Debug("Player.Local is null");
+                return;
+            }
+            
+            ModLogger.Info($"Player.Local found: {Player.Local.GetType().FullName}");
+            
+            if (Player.Local.gameObject == null)
+            {
+                ModLogger.Debug("Player.Local.gameObject is null");
+                return;
+            }
+            
+            ModLogger.Info($"Player.Local.gameObject: {Player.Local.gameObject.name} (Active: {Player.Local.gameObject.activeInHierarchy})");
+            
+            if (Player.Local.Health == null)
+            {
+                ModLogger.Debug("Player.Local.Health is null");
+            }
+            else
+            {
+                ModLogger.Info($"Player.Local.Health: {Player.Local.Health.GetType().FullName}");
+            }
+#else
+            if (Player.Local == null)
+            {
+                ModLogger.Debug("Player.Local is null (IL2CPP)");
+                return;
+            }
+            
+            ModLogger.Info($"Player.Local found (IL2CPP): {Player.Local.GetType().FullName}");
+            
+            if (Player.Local.gameObject == null)
+            {
+                ModLogger.Debug("Player.Local.gameObject is null (IL2CPP)");
+                return;
+            }
+            
+            ModLogger.Info($"Player.Local.gameObject (IL2CPP): {Player.Local.gameObject.name} (Active: {Player.Local.gameObject.activeInHierarchy})");
+            
+            if (Player.Local.Health == null)
+            {
+                ModLogger.Debug("Player.Local.Health is null (IL2CPP)");
+            }
+            else
+            {
+                ModLogger.Debug($"Player.Local.Health (IL2CPP): {Player.Local.Health.GetType().FullName}");
+            }
+#endif
+        }
+        catch (System.Exception ex)
+        {
+            ModLogger.Error($"Error logging player state: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -299,6 +478,21 @@ public static class Utils
     public static IEnumerator ReturnNull()
     {
         yield return null;
+    }
+
+    /// <summary>
+    /// Custom implementation of WaitForSeconds that pauses coroutine execution for the specified duration.
+    /// This is needed because Unity's WaitForSeconds class is not available in this context.
+    /// </summary>
+    /// <param name="seconds">The number of seconds to wait</param>
+    /// <returns>An enumerator that waits for the specified duration</returns>
+    public static IEnumerator WaitForSeconds(float seconds)
+    {
+        float startTime = Time.time;
+        while (Time.time - startTime < seconds)
+        {
+            yield return null;
+        }
     }
 
     /// <summary>

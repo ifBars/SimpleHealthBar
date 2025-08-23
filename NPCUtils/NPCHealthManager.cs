@@ -8,16 +8,19 @@ using Il2CppScheduleOne.PlayerScripts;
 using Il2CppScheduleOne.UI;
 #endif
 using MelonLoader;
+using SimpleHealthBar.Helpers;
 using SimpleHealthBar.UI;
+using UnityEngine;
 
 namespace SimpleHealthBar.NPCUtils
 {
     public static class NPCHealthManager
     {
-        private static MelonLogger.Instance Logger;
         private static NPCManager NPCManager;
-        private static NPCHealthBar NPCSelectedBar;
+        private static HealthBar HealthBar;
+        private static NPC CurrentNPC;
         private static bool IsInitialized = false;
+        private static bool IsOutOfSight = true;
 
         /// <summary>
         /// Initializes the NPC healthbar manager, setting up the logger and creating the healthbar for the nearest NPC if the NPCManager is available.
@@ -25,17 +28,19 @@ namespace SimpleHealthBar.NPCUtils
         /// <param name="logger">The logger instance to use for output.</param>
         public static void Init(MelonLogger.Instance logger)
         {
-            Logger = logger;
             IsInitialized = NPCManager.InstanceExists;
             if (IsInitialized)
             {
                 NPCManager = NPCManager.Instance;
-                NPCSelectedBar = new NPCHealthBar();
-                NPCSelectedBar.Init(HUD.Instance.transform);
-                Logger.Msg("Nearest NPC Healthbar Initialized!");
+#if MONO
+                HealthBar = new HealthBar(HealthBarType.NPC, HUD.instance.transform);
+#else
+                HealthBar = new HealthBar(HealthBarType.NPC, HUD.Instance.transform);
+#endif
+                ModLogger.Info("NPC Healthbar Initialized!");
             }
             else
-                Logger.Error("NPCManager not found, aborting NPC health reporting!");
+                ModLogger.Error("NPCManager not found, aborting NPC health reporting!");
         }
 
         /// <summary>
@@ -44,23 +49,58 @@ namespace SimpleHealthBar.NPCUtils
         /// <param name="npc">The NPC that has been selected.</param>
         public static void OnNPCSelected(NPC npc)
         {
-            if (IsInitialized)
+            if (IsInitialized && npc != null && HealthBar != null)
             {
-                if(NPCSelectedBar.GetNPC() != npc)
+                if (CurrentNPC != npc)
                 {
-                    NPCSelectedBar.SetNPC(npc);
-                    NPCSelectedBar.UpdateText();
-                    NPCSelectedBar.Show();
+                    CurrentNPC = npc;
+                    HealthBar.UpdateText(npc.fullName);
+                    HealthBar.Show();
                 }
                 else
                 {
-                    if (NPCSelectedBar.GetDisplayedHealth() != npc.Health.Health)
+                    if (HealthBar.GetCurrentHealth() != npc.Health.Health)
                     {
-                        NPCSelectedBar.UpdateText();
-                        NPCSelectedBar.Show();
+                        HealthBar.UpdateText(npc.fullName);
+                        HealthBar.Show();
                     }
                 }
             }
+        }
+
+        private static float GetDistanceFromPlayer()
+        {
+            if (CurrentNPC == null || Player.Local == null) return float.MaxValue;
+            
+#if MONO
+            // Mono workaround - exclusively use transform position to avoid MissingMethodException
+            Vector3 npcPosition = CurrentNPC.transform.position;
+#else
+            // IL2CPP - use the standard approach
+            Vector3 npcPosition = CurrentNPC.Movement.FootPosition;
+#endif
+            
+            return (npcPosition - Player.Local.CameraPosition).sqrMagnitude;
+        }
+
+        private static bool CheckDistanceFromPlayer()
+        {
+            bool check = GetDistanceFromPlayer() < Preferences.NPCFadeOutDistance.Value;
+            if (!check && !IsOutOfSight)
+                IsOutOfSight = true;
+            else if (check && IsOutOfSight)
+            {
+                IsOutOfSight = false;
+            }
+            return check;
+        }
+
+        private static bool CheckDistanceChanged()
+        {
+            bool check = GetDistanceFromPlayer() < Preferences.NPCFadeOutDistance.Value;
+            if (check && IsOutOfSight)
+                return true;
+            return false;
         }
 
         /*
@@ -74,18 +114,35 @@ namespace SimpleHealthBar.NPCUtils
         {
             NPC closestNPC = null;
             float closestDist = float.MaxValue;
+            
             foreach(NPC npc in NPCManager.NPCRegistry)
             {
-                float sqrDist = (npc.Movement.FootPosition - Player.Local.CameraPosition).sqrMagnitude;
-                if(sqrDist < closestDist)
+                if (npc == null) continue;
+                
+                float sqrDist;
+#if MONO
+                // Mono workaround - exclusively use transform position to avoid MissingMethodException
+                Vector3 npcPosition = npc.transform.position;
+#else
+                // IL2CPP - use the standard approach
+                Vector3 npcPosition = npc.Movement.FootPosition;
+#endif
+                
+                if (Player.Local != null)
                 {
-                    closestDist = sqrDist;
-                    closestNPC = npc;
+                    sqrDist = (npcPosition - Player.Local.CameraPosition).sqrMagnitude;
+                    if(sqrDist < closestDist)
+                    {
+                        closestDist = sqrDist;
+                        closestNPC = npc;
+                    }
                 }
             }
 
             return closestNPC;
         }
+
+
 
         /// <summary>
         /// Updates the NPC healthbar each frame, ensuring it tracks the closest NPC and updates when health or distance changes.
@@ -94,28 +151,37 @@ namespace SimpleHealthBar.NPCUtils
         {
             if (!IsInitialized)
                 return;
+                
             NPC closestNPC = GetClosestNPC();
-            if (NPCSelectedBar.GetNPC() != closestNPC)
+            
+            if (closestNPC != null && CurrentNPC != closestNPC)
             {
-                NPCSelectedBar.SetNPC(closestNPC);
-                NPCSelectedBar.UpdateText();
-                NPCSelectedBar.Show();
+                CurrentNPC = closestNPC;
+                float npcHealth = CurrentNPC.Health.Health;
+                ModLogger.Debug($"NPC changed to {closestNPC.fullName} with health {npcHealth}");
+                HealthBar.SetCurrentHealth(npcHealth);
+                HealthBar.UpdateText(closestNPC.fullName);
+                HealthBar.Show();
             }
-            else
+            else if (CurrentNPC != null)
             {
-                bool update = NPCSelectedBar.GetNPCHealth() != NPCSelectedBar.GetDisplayedHealth();
+                float currentHealth = CurrentNPC.Health.Health;
+                float displayedHealth = HealthBar.GetCurrentHealth();
+                bool update = displayedHealth != currentHealth;
+                
                 if (update)
                 {
-                    NPCSelectedBar.UpdateText();
-                    NPCSelectedBar.Show();
-                }
-                if (NPCSelectedBar.CheckDistanceChanged())
-                {
-                    NPCSelectedBar.UpdateText();
-                    NPCSelectedBar.Show();
+                    ModLogger.Debug($"NPC health changed from {displayedHealth} to {currentHealth}");
+                    HealthBar.SetCurrentHealth(currentHealth);
+                    HealthBar.UpdateText(CurrentNPC.fullName);
+                    HealthBar.Show();
                 }
             }
-            NPCSelectedBar.Update();
+            
+            if (HealthBar != null)
+            {
+                HealthBar.Update();
+            }
         }
 
         /// <summary>
@@ -124,7 +190,7 @@ namespace SimpleHealthBar.NPCUtils
         public static void Unload()
         {
             IsInitialized = false;
-            NPCSelectedBar = null;
+            HealthBar = null;
         }
         /// <summary>
         /// Returns whether the NPC healthbar manager has been initialized.

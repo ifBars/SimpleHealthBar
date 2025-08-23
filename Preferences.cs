@@ -8,6 +8,7 @@ namespace SimpleHealthBar
         {
             Preferences.Category = MelonPreferences.CreateCategory("SimpleHealthBar_HealthBar", "Bar Settings");
             Preferences.AnimationCategory = MelonPreferences.CreateCategory("SimpleHealthBar_Animation", "Animation Settings");
+            Preferences.DebugCategory = MelonPreferences.CreateCategory("SimpleHealthBar_Debug", "Debug Settings");
             Preferences.FadeOutBar = Preferences.Category.CreateEntry<bool>("FadeOutBar", true, "Fade Out Health Bar", "Fades the health bar after a few seconds", false, false, null, null);
             Preferences.FadeHealthText = Preferences.Category.CreateEntry<bool>("FadeOutHealthText", true, "Fade Out Health Text", "Fades out the text display showing your health", false, false, null, null);
             Preferences.ShowOnDamage = Preferences.Category.CreateEntry<bool>("ShowOnDamage", true, "Show Health Bar on Damage", "Shows the health bar when you take damage", false, false, null, null);
@@ -19,6 +20,8 @@ namespace SimpleHealthBar
             Preferences.NPCHealthBarEnabled = Preferences.NPCHealthBar.CreateEntry<bool>("NPCBarEnabled", true, "NPC Health Bar Enabled", "Enables the health bar for the nearest NPC", false, false, null, null);
             Preferences.FadeOutNPCBar = Preferences.NPCHealthBar.CreateEntry<bool>("FadeOutNPCBar", true, "Fade out NPC Health Bar", "Enables fading out the health bar for the nearest NPC", false, false, null, null);
             Preferences.NPCFadeOutDistance = Preferences.NPCHealthBar.CreateEntry<float>("NPCFadeOutDistance", 100f, "Distance from Player to Fade Out Bar", "Sets the distance from the player the NPC health bar should fade out", false, false, null, null);
+            //Debug preferences
+            Preferences.EnableDebugLogging = Preferences.DebugCategory.CreateEntry<bool>("EnableDebugLogging", false, "Enable Debug Logging", "Enables detailed debug logging for troubleshooting", false, false, null, null);
         }
 
         public static MelonPreferences_Category Category;
@@ -33,5 +36,7 @@ namespace SimpleHealthBar
         public static MelonPreferences_Entry<bool> NPCHealthBarEnabled;
         public static MelonPreferences_Entry<bool> FadeOutNPCBar;
         public static MelonPreferences_Entry<float> NPCFadeOutDistance;
+        public static MelonPreferences_Category DebugCategory;
+        public static MelonPreferences_Entry<bool> EnableDebugLogging;
     }
 }

@@ -5,9 +5,9 @@ using SimpleHealthBar.NPCUtils;
 using SimpleHealthBar.PlayerUtils;
 
 #if MONO
-using FishNet;
+using ScheduleOne.PlayerScripts;
 #else
-using Il2CppFishNet;
+using Il2CppScheduleOne.PlayerScripts;
 #endif
 
 [assembly: MelonInfo(
@@ -43,6 +43,11 @@ public class SimpleHealthBar : MelonMod
     {
         Logger = LoggerInstance;
         Preferences.Init();
+        
+        // Initialize ModLogger with debug preference
+        ModLogger.SetDebugEnabled(Preferences.EnableDebugLogging.Value);
+        
+        ModLogger.Info("SimpleHealthBar initialized successfully");
     }
 
     /// <summary>
@@ -53,10 +58,15 @@ public class SimpleHealthBar : MelonMod
     /// <param name="sceneName">The name of the loaded scene.</param>
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
     {
-        Logger.Debug($"Scene loaded: {sceneName}");
         if (sceneName == "Main")
         {
+            ModLogger.Debug("Main scene loaded - starting initialization");
             MelonCoroutines.Start(Init());
+            
+            // Start a safety timer for Mono builds
+#if MONO
+            MelonCoroutines.Start(SafetyTimer());
+#endif
         }
         else if (sceneName == "Menu")
         {
@@ -66,15 +76,97 @@ public class SimpleHealthBar : MelonMod
         }
     }
 
+#if MONO
+    public override void OnUpdate()
+    {
+        PlayerHealthBarManager.OnUpdate();
+        NPCHealthManager.OnUpdate();
+        MultiplayerHandler.OnUpdate();
+    }
+#endif
+
+    /// <summary>
+    /// Safety timer that ensures initialization happens even if the main Init coroutine fails.
+    /// This is particularly important for Mono builds where timing issues might occur.
+    /// </summary>
+    private IEnumerator SafetyTimer()
+    {
+        yield return Utils.WaitForSeconds(10f); // Wait 10 seconds
+        
+        // Check if managers are initialized
+        if (!PlayerHealthBarManager.Initialized())
+        {
+            ModLogger.Warn("Safety timer triggered - managers not initialized, attempting fallback");
+            ModLogger.Info("Current player state:");
+            Utils.LogPlayerState();
+            yield return FallbackInit();
+        }
+        else
+        {
+            ModLogger.Info("Safety timer: Managers already initialized successfully");
+        }
+    }
 
     /// <summary>
     /// Coroutine that waits for the player to be available, then initializes all healthbar managers.
     /// </summary>
     private IEnumerator Init()
     {
+        ModLogger.Info("Starting initialization - waiting for player to spawn...");
+        
+        // Log initial player state for debugging
+        Utils.LogPlayerState();
+        
+#if MONO
+        // Use the more robust player detection for Mono
+        yield return Utils.WaitForPlayerSpawned(Utils.ReturnNull());
+#else
+        // Use standard player detection for IL2CPP
         yield return Utils.WaitForPlayer(Utils.ReturnNull());
+#endif
+        
+        ModLogger.Info("Player detected - initializing health bar managers...");
         PlayerHealthBarManager.Init(Logger);
         NPCHealthManager.Init(Logger);
         MultiplayerHandler.Init(Logger);
+        ModLogger.Info("All health bar managers initialized successfully!");
+    }
+
+    private void StartManagers()
+    {
+        PlayerHealthBarManager.Init(Logger);
+        NPCHealthManager.Init(Logger);
+        MultiplayerHandler.Init(Logger);
+    }
+
+    /// <summary>
+    /// Fallback initialization method that can be called if the initial Init coroutine fails.
+    /// This is particularly useful for Mono builds where timing issues might occur.
+    /// </summary>
+    private IEnumerator FallbackInit()
+    {
+        ModLogger.Warn("Using fallback initialization - player detection may have failed");
+        
+        // Wait a bit longer and try to initialize anyway
+        yield return Utils.WaitForSeconds(2f);
+        
+        // Check if we can find the player now
+#if MONO
+        if (ScheduleOne.PlayerScripts.Player.Local != null && ScheduleOne.PlayerScripts.Player.Local.gameObject != null)
+        {
+            ModLogger.Info("Player found in fallback - initializing managers");
+            StartManagers();
+        }
+#else
+        if (Il2CppScheduleOne.PlayerScripts.Player.Local != null && Il2CppScheduleOne.PlayerScripts.Player.Local.gameObject != null)
+        {
+            ModLogger.Info("Player found in fallback - initializing managers");
+            StartManagers();
+        }
+#endif
+        else
+        {
+            ModLogger.Error("Player still not found in fallback - initialization failed");
+        }
     }
 }
