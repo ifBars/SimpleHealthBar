@@ -28,7 +28,7 @@ public static class BuildInfo
     public const string Name = "SimpleHealthBar";
     public const string Description = "Gives you a health bar above your inventory.";
     public const string Author = "iTidez";
-    public const string Version = "1.3.1";
+    public const string Version = "1.4.0";
     public const string DownloadLink = "https://www.nexusmods.com/schedule1/mods/1106";
 }
 

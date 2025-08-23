@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.3.1
+## 1.4.0
 - Cartel Update
 - Refactored health bar system and introduced a unified HealthBar class for improved functionality and maintainability
 - Consolidated player, NPC, and multiplayer health bar management into a single unified system
