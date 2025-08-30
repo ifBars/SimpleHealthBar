@@ -51,6 +51,10 @@ namespace SimpleHealthBar.NPCUtils
         {
             if (IsInitialized && npc != null && HealthBar != null)
             {
+                // Check if NPC has required components (S1API custom NPCs might not have all components)
+                if (npc.Health == null)
+                    return;
+                    
                 if (CurrentNPC != npc)
                 {
                     CurrentNPC = npc;
@@ -71,6 +75,10 @@ namespace SimpleHealthBar.NPCUtils
         private static float GetDistanceFromPlayer()
         {
             if (CurrentNPC == null || Player.Local == null) return float.MaxValue;
+            
+            // Check if NPC has required components (S1API custom NPCs might not have all components)
+            if (CurrentNPC.Movement == null || CurrentNPC.Health == null)
+                return float.MaxValue;
             
 #if MONO
             // Mono workaround - exclusively use transform position to avoid MissingMethodException
@@ -119,6 +127,9 @@ namespace SimpleHealthBar.NPCUtils
             {
                 if (npc == null) continue;
                 
+                // Check if NPC has required components (S1API custom NPCs might not have all components)
+                if (npc.Movement == null || npc.Health == null) continue;
+                
                 float sqrDist;
 #if MONO
                 // Mono workaround - exclusively use transform position to avoid MissingMethodException
@@ -156,6 +167,10 @@ namespace SimpleHealthBar.NPCUtils
             
             if (closestNPC != null && CurrentNPC != closestNPC)
             {
+                // Check if NPC has required components (S1API custom NPCs might not have all components)
+                if (closestNPC.Health == null)
+                    return;
+                    
                 CurrentNPC = closestNPC;
                 float npcHealth = CurrentNPC.Health.Health;
                 ModLogger.Debug($"NPC changed to {closestNPC.fullName} with health {npcHealth}");
@@ -165,6 +180,10 @@ namespace SimpleHealthBar.NPCUtils
             }
             else if (CurrentNPC != null)
             {
+                // Check if NPC has required components (S1API custom NPCs might not have all components)
+                if (CurrentNPC.Health == null)
+                    return;
+                    
                 float currentHealth = CurrentNPC.Health.Health;
                 float displayedHealth = HealthBar.GetCurrentHealth();
                 bool update = displayedHealth != currentHealth;
